@@ -1,1 +1,11 @@
-This file was created by IntelliJ IDEA 12.0.4 for binding GitHub repository
+Clone of Warcraft 2 game with some modern gameplay mechanics.
+i.e. gathering units in assigned groups (Ctrl+1), betther pathfinding. etc.
+Only skirmish, for now Player vs AI.
+Written in Java with Slick Engine.
+
+Libraries:
+
+slick: http://www.slick2d.org/
+debug_panel: https://github.com/smoke11/debugpanel
+lwjgl: http://lwjgl.org/
+(for lwjgl, it`s needed to set path to libs and dlls. i.e. -Djava.library.path=lib)

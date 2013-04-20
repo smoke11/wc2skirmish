@@ -40,7 +40,7 @@ public class Main extends StateBasedGame {
             if(Main.class.getProtectionDomain().getCodeSource().getLocation().getPath().contains(".jar"))//if it is stand alone, make console window
                 DebugView.createWindow(830, 0, 200, 400, DebugView.DEBUGLVL_LESSINFO);
             else
-                DebugView.setDebugLevel(DebugView.DEBUGLVL_LESSINFO);
+                DebugView.setDebugLevel(DebugView.DEBUGLVL_MOREINFO);
             //initialize main window
             AppGameContainer container = new AppGameContainer(new Main());
             container.setDisplayMode(800,600,false);

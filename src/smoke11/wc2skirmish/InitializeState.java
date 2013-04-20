@@ -22,9 +22,22 @@ public class InitializeState extends BasicGameState{
     private static final int id = 1;
     private static String mainDir="D:\\datafiles\\"; //use this to change path to files of this program
     private static boolean firstTimeOpen=true;
-    public static Tile[][] mapTiles;
-    public static HashMap<String, SpriteSheet> spriteSheets = new HashMap<String, SpriteSheet>();
-    public static HashMap<String, Image[]> imageSpriteTiles = new HashMap<String, Image[]>();
+    private static Tile[][] mapTiles;
+    private static HashMap<String, SpriteSheet> spriteSheets = new HashMap<String, SpriteSheet>();
+    private static HashMap<String, Image[]> imageSpriteTiles = new HashMap<String, Image[]>();
+    public static HashMap<String, SpriteSheet> getSpriteSheets() {
+        return spriteSheets;
+    }
+
+    public static HashMap<String, Image[]> getImageSpriteTiles() {
+        return imageSpriteTiles;
+    }
+
+
+    public static Tile[][] getMapTiles() {
+        return mapTiles;
+    }
+
     @Override
     public int getID() {
         return id;

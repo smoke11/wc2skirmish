@@ -14,6 +14,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public class ParseInput {
+
     public static enum Controls
     {
         CAMERA_UP(Input.KEY_UP),

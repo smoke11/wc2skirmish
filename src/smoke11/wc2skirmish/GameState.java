@@ -22,8 +22,11 @@ import java.util.HashMap;
 public class GameState extends BasicGameState {
     private static final int id = 2;
     private static Tile[][] mapTiles;
-    private static HashMap<String, SpriteSheet> spriteSheets;
-    private static HashMap<String, Image[]> imageSpriteTiles;
+    private static Tile[][] unitTiles;
+    private static HashMap<String, SpriteSheet> terrainSpriteSheets;
+    private static HashMap<String, Image[]> terrainSpriteTiles;
+    private static HashMap<String, SpriteSheet> unitSpriteSheets;
+    private static HashMap<String, HashMap<Integer,Image>> unitSpriteTiles;
     private static Vector2f cameraOffset = new Vector2f(0,0);
 
     private static HashMap<String, Integer> controls = new HashMap<String, Integer>(); //TODO: move this to xml and read it from file
@@ -35,18 +38,43 @@ public class GameState extends BasicGameState {
     @Override
     public void init(GameContainer gameContainer, StateBasedGame stateBasedGame) throws SlickException {
         mapTiles = InitializeState.getMapTiles();
-        spriteSheets = InitializeState.getSpriteSheets();
-        imageSpriteTiles=InitializeState.getImageSpriteTiles();
-
+        unitTiles = InitializeState.getUnitTiles();
+        terrainSpriteSheets = InitializeState.getTerrainSpriteSheets();
+        terrainSpriteTiles =InitializeState.getTerrainSpriteTiles();
+        unitSpriteSheets = InitializeState.getUnitSpriteSheets();
+        unitSpriteTiles = InitializeState.getUnitSpriteTiles();
     }
-
+    /////////////////
+    //for rendering terrain, tiles are order by mapTiles id
+    //for rendering units, there is needed to get current unit, by name (by first key in hashmap), then get current tile by unittile id
+    /////////////////
     @Override
     public void render(GameContainer gameContainer, StateBasedGame stateBasedGame, Graphics graphics) throws SlickException {
-        spriteSheets.get("summertiles").startUse();
+        //render terrain
+        String terrainname= "summertiles";
+        terrainSpriteSheets.get(terrainname).startUse();
         for (int x=0; x<mapTiles.length;x++)
             for (int y=0; y<mapTiles[0].length;y++)
-                imageSpriteTiles.get("summertiles")[mapTiles[x][y].ID].drawEmbedded(cameraOffset.x+x*32,cameraOffset.y+y*32);
-        spriteSheets.get("summertiles").endUse();
+                terrainSpriteTiles.get(terrainname)[mapTiles[x][y].ID].drawEmbedded(cameraOffset.x+x*32,cameraOffset.y+y*32);
+        terrainSpriteSheets.get(terrainname).endUse();
+        //render units (buildings are units too!)
+        for(String ssname : unitSpriteSheets.keySet())
+        {
+            SpriteSheet ss = unitSpriteSheets.get(ssname);
+            if(ss==null)
+                continue;
+            ss.startUse();
+            for (int x=0; x<mapTiles.length;x++)
+                for (int y=0; y<mapTiles[0].length;y++)
+                {
+                    if(unitTiles[x][y]==null)
+                        continue;
+                    Image img = unitSpriteTiles.get(ssname).get(unitTiles[x][y].ID);
+                    if(img!=null)
+                        img.drawEmbedded(cameraOffset.x+x*32,cameraOffset.y+y*32);
+                }
+            ss.endUse();
+        }
     }
 
     @Override

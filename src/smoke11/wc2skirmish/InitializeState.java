@@ -23,14 +23,31 @@ public class InitializeState extends BasicGameState{
     private static String mainDir="D:\\datafiles\\"; //use this to change path to files of this program
     private static boolean firstTimeOpen=true;
     private static Tile[][] mapTiles;
-    private static HashMap<String, SpriteSheet> spriteSheets = new HashMap<String, SpriteSheet>();
-    private static HashMap<String, Image[]> imageSpriteTiles = new HashMap<String, Image[]>();
-    public static HashMap<String, SpriteSheet> getSpriteSheets() {
-        return spriteSheets;
+
+    public static Tile[][] getUnitTiles() {
+        return unitTiles;
     }
 
-    public static HashMap<String, Image[]> getImageSpriteTiles() {
-        return imageSpriteTiles;
+    private static Tile[][] unitTiles;
+    private static HashMap<String, SpriteSheet> terrainSpriteSheets = new HashMap<String, SpriteSheet>();
+    private static HashMap<String, Image[]> terrainSpriteTiles = new HashMap<String, Image[]>();
+
+    public static HashMap<String, SpriteSheet> getUnitSpriteSheets() {
+        return unitSpriteSheets;
+    }
+
+    public static HashMap<String, HashMap<Integer,Image>> getUnitSpriteTiles() {
+        return unitSpriteTiles;
+    }
+
+    private static HashMap<String, SpriteSheet> unitSpriteSheets = new HashMap<String, SpriteSheet>();
+    private static HashMap<String, HashMap<Integer,Image>> unitSpriteTiles = new HashMap<String, HashMap<Integer,Image>>();
+    public static HashMap<String, SpriteSheet> getTerrainSpriteSheets() {
+        return terrainSpriteSheets;
+    }
+
+    public static HashMap<String, Image[]> getTerrainSpriteTiles() {
+        return terrainSpriteTiles;
     }
 
 
@@ -50,7 +67,7 @@ public class InitializeState extends BasicGameState{
             FileOpenPanel f = new FileOpenPanel();
             mainDir = f.getPathToJar();
         }
-        if(!new File(mainDir+"settings.xml").exists())                 //if there is no xml we should make it
+        if(new File(mainDir+"settings.xml").exists())                 //if there is no xml we should make it
             XMLSettingsCreator.main(new String[]{mainDir});
         if(firstTimeOpen)
             readSettings();
@@ -74,42 +91,46 @@ public class InitializeState extends BasicGameState{
         {
             File terraintiles, unittiles;
             XMLSettingsReader.main(new String[]{XMLfile.getPath()});
-            unittiles = new File(XMLSettingsReader.Paths.get("unit_tiles"));
-            terraintiles = new File(XMLSettingsReader.Paths.get("terrain_tiles"));
+            unittiles = new File(XMLSettingsReader.paths.get("unit_tiles"));
+            terraintiles = new File(XMLSettingsReader.paths.get("terrain_tiles"));
             if(unittiles.exists())
-                XML_Units_SettingsCreatorIter.main(new String[]{XMLSettingsReader.Paths.get("unit_tiles")});
+                XML_Units_SettingsCreatorIter.main(new String[]{XMLSettingsReader.paths.get("unit_tiles")});
             if(terraintiles.exists())
-                XML_Tiles_SettingsCreatorIter.main(new String[]{XMLSettingsReader.Paths.get("terrain_tiles")});
-            XMLPudSettingsReader.main(new String[]{XMLSettingsReader.Paths.get("terrain_tiles"), XMLSettingsReader.Paths.get("unit_tiles")});
+                XML_Tiles_SettingsCreatorIter.main(new String[]{XMLSettingsReader.paths.get("terrain_tiles")});
+            XMLPudSettingsReader.main(new String[]{XMLSettingsReader.paths.get("terrain_tiles"), XMLSettingsReader.paths.get("unit_tiles")});
             firstTimeOpen=false;
         }
 
     }
+    ////////////////////
+    //First, we read and cut terrain sprites. It`s simple - (we kill the Batman) we pass spritesheet and list of tiles to spritesheetparser
+    //For units, we must pass spritesheet for unit, unit data (for all units) and string info about unit (for recognise and for ignore other units)
+    ////////////////////
     private void readImages()
     {
-        String name;
+        String terrainname;
         try {
-            name = "summertiles";
-            DebugView.writeDebug(DebugView.DEBUGLVL_LESSINFO,"InitializeState","Reading spritesheet: "+name);
-            spriteSheets.put(name, new SpriteSheet(XMLSettingsReader.ImagePaths.get(name), 32, 32, 1));
-            name = "humanbuildingssummer";
-            DebugView.writeDebug(DebugView.DEBUGLVL_LESSINFO,"InitializeState","Reading spritesheet: "+name);
-            spriteSheets.put(name, new SpriteSheet(XMLSettingsReader.ImagePaths.get(name), 32, 32, 1));
-            name = "orcbuildingssummer";
-            DebugView.writeDebug(DebugView.DEBUGLVL_LESSINFO,"InitializeState","Reading spritesheet: "+name);
-            spriteSheets.put(name, new SpriteSheet(XMLSettingsReader.ImagePaths.get(name), 32, 32, 1));
+            terrainname = "summertiles";
+            DebugView.writeDebug(DebugView.DEBUGLVL_LESSINFO,"InitializeState","Reading spritesheet: "+terrainname);
+            terrainSpriteSheets.put(terrainname, new SpriteSheet(XMLSettingsReader.imagePaths.get(terrainname), 32, 32, 1));
+            for(String name : XMLSettingsReader.imagePaths.keySet())
+            {
+                if(terrainname.contentEquals(name))
+                    continue;
+                DebugView.writeDebug(DebugView.DEBUGLVL_LESSINFO,"InitializeState","Reading spritesheet: "+name);
+                unitSpriteSheets.put(name, new SpriteSheet(XMLSettingsReader.imagePaths.get(name), 32, 32, 1));
+            }
+
         } catch (SlickException e) {
             DebugView.writeDebug(DebugView.DEBUGLVL_ERRORS,"InitializeState","While reading sprites: ");
             DebugView.writeDebug(DebugView.DEBUGLVL_ERRORS,"InitializeState",e.getMessage());
             DebugView.writeDebug(DebugView.DEBUGLVL_ERRORS,"InitializeState",e.getStackTrace().toString());
 
         }
-            name = "summertiles";
-            imageSpriteTiles.put(name, SpritesheetParser.cutSpriteSheet(spriteSheets.get(name), XMLPudSettingsReader.SortedTerrainTiles));
-            name = "humanbuildingssummer";
-            imageSpriteTiles.put(name, SpritesheetParser.cutSpriteSheet(spriteSheets.get(name), XMLPudSettingsReader.UnitTiles));  //TODO: make proper methods from spritesheetparser from pudutils
-            name = "orcbuildingssummer";
-            imageSpriteTiles.put(name, SpritesheetParser.cutSpriteSheet(spriteSheets.get(name), XMLPudSettingsReader.UnitTiles));   //TODO: make proper methods from spritesheetparser from pudutils
+            terrainname = "summertiles";
+            terrainSpriteTiles.put(terrainname, SpritesheetParser.cutSpriteSheet(terrainSpriteSheets.get(terrainname), XMLPudSettingsReader.SortedTerrainTiles));
+            for(String name : unitSpriteSheets.keySet())
+                unitSpriteTiles.put(name, SpritesheetParser.cutSpriteSheet(unitSpriteSheets.get(name), XMLPudSettingsReader.UnitTiles, XMLSettingsReader.recogniseWith.get(name), XMLSettingsReader.ignoreIfHave.get(name)));
     }
     private void loadMap()
     {
@@ -118,7 +139,7 @@ public class InitializeState extends BasicGameState{
         if(firstTimeOpen)
             readSettings();
 
-        f.openMapFile(XMLSettingsReader.Paths.get("main_folder"));
+        f.openMapFile(XMLSettingsReader.paths.get("main_folder"));
         if(f.OpenedMapFile !=null)
         {
 
@@ -127,7 +148,7 @@ public class InitializeState extends BasicGameState{
             p.getMapDataFromFile(f.OpenedMapFile);
             p.prepareTiles(XMLPudSettingsReader.SortedTerrainTiles, XMLPudSettingsReader.UnitTiles);
             mapTiles =p.mapTiles;
-
+            unitTiles=p.unitTiles;
 
         }
     }

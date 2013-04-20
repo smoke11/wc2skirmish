@@ -43,6 +43,7 @@ public class Main extends StateBasedGame {
                 DebugView.setDebugLevel(DebugView.DEBUGLVL_MOREINFO);
             //initialize main window
             AppGameContainer container = new AppGameContainer(new Main());
+            container.setTargetFrameRate(60);
             container.setDisplayMode(800,600,false);
             container.start();
         } catch (SlickException e) {

@@ -19,8 +19,10 @@ import java.util.HashMap;
  * To change this template use File | Settings | File Templates.
  */
 public class XMLSettingsReader {
-    public static HashMap<String, String> Paths = new HashMap<String, String>();
-    public static HashMap<String, String> ImagePaths = new HashMap<String, String>();
+    public static HashMap<String, String> paths = new HashMap<String, String>();
+    public static HashMap<String, String> imagePaths = new HashMap<String, String>();
+    public static HashMap<String, String> recogniseWith = new HashMap<String, String>();
+    public static HashMap<String, String> ignoreIfHave = new HashMap<String, String>();
     public static int main(String[] args){ //public static void readXMLSettings() {
 
         try {
@@ -51,7 +53,7 @@ public class XMLSettingsReader {
                     DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO, XMLSettingsReader.class.getSimpleName(), "Name: " + name);
                     String dir = eElement.getAttribute("Dir");
                     DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO, XMLSettingsReader.class.getSimpleName(), "Dir: " + dir);
-                    Paths.put(name,dir);
+                    paths.put(name, dir);
 
                 }
             }
@@ -69,7 +71,13 @@ public class XMLSettingsReader {
                     DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO, XMLSettingsReader.class.getSimpleName(), "Name: " + name);
                     String dir = eElement.getAttribute("Dir");
                     DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO, XMLSettingsReader.class.getSimpleName(), "Dir: " + dir);
-                    ImagePaths.put(name,dir);
+                    imagePaths.put(name, dir);
+                    String rec = eElement.getAttribute("RecogniseWith");
+                    DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO, XMLSettingsReader.class.getSimpleName(), "Name: " + name);
+                    recogniseWith.put(name, rec);
+                    String ignore = eElement.getAttribute("IgnoreIfHave");
+                    DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO, XMLSettingsReader.class.getSimpleName(), "Dir: " + dir);
+                    ignoreIfHave.put(name,ignore);
 
                 }
             }

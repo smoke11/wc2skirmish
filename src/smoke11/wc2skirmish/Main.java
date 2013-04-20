@@ -3,12 +3,26 @@ package smoke11.wc2skirmish;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.*;
+import org.newdawn.slick.state.GameState;
 import smoke11.DebugView;
 
 public class Main extends StateBasedGame {
 
+    public static enum States
+    {
+        INITIALIZE (1),
+        GAME (2);
+        private final int index;
 
+        States(int index) {
+            this.index = index;
+        }
+
+        public int index() {
+            return index;
+        }
+    }
 
     public Main() {
         super("WC2 Skirmish");
@@ -17,7 +31,7 @@ public class Main extends StateBasedGame {
 
     public void initStatesList(GameContainer container) {
         addState(new InitializeState());
-
+        addState(new smoke11.wc2skirmish.GameState());
     }
 
 

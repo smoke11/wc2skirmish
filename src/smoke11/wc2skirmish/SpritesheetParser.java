@@ -73,21 +73,21 @@ public class SpritesheetParser {
     }
     ////////////////////////////////
     //because i`m cutting only SpriteSheet at time (i.e. buildings or one unit with anim) at the time, there is need to return HashMap, as method to get image by id as index is no longer working
-    //so for each tile (expressed by id) i`m getting image and put it in hashmap where key is id. and this hashmap with images put to hashmap where key is string with name of unit for which was spritesheet
+    //so for each tile (expressed by pudid) i`m getting image and put it in hashmap where key is pudid. and this hashmap with images put to hashmap where key is string with name of unit for which was spritesheet
     ///////////////////////////////
-    public static HashMap<Integer,Image> cutSpriteSheet(SpriteSheet spritesheets, Tile[][] tiles, String ifThisContainsUseImage, String ifThisContainsIgnore)
+    public static HashMap<String,Image> cutSpriteSheet(SpriteSheet spritesheets, Tile[][] tiles, String ifThisContainsUseImage, String ifThisContainsIgnore)
     {
-        HashMap<Integer,Image> images = new HashMap<Integer, Image>();
-        int lastID=-1;
+        HashMap<String,Image> images = new HashMap<String, Image>();
+        String lastID= "";
         for (int i1=0;i1<tiles.length;i1++)
         {
             for (int i2=0;i2<tiles[0].length;i2++)
             {
                 if(tiles[i1][i2]!=null)
                 {
-                    if(lastID!=tiles[i1][i2].ID)
+                    if(lastID!=tiles[i1][i2].PudID)
                     {
-                        lastID=tiles[i1][i2].ID;
+                        lastID=tiles[i1][i2].PudID;
                             if(tiles[i1][i2].Name.contains(ifThisContainsUseImage))
                             {//using it for telling SpritesheetParser to take specific sprites from specific sheets. i.e. "Human" means take all tiles which hase human in name for this spritesheet (for this it will be all human buildings) Orc in ignore will mean that ignore all with Orc in name
                                 if(ifThisContainsIgnore=="")

@@ -20,6 +20,7 @@ public class Unit implements IUnitEventsListener {
         SHIP
     }
     protected static String nameOfUnit;
+    protected static String PudID;
     protected int id;
     protected int health;
     protected int mana;
@@ -32,6 +33,11 @@ public class Unit implements IUnitEventsListener {
     protected Types type;
     protected String race;
     protected int faction;
+
+    public Vector2f getPosition() {
+        return position;
+    }
+
     protected Vector2f position;
     protected Vector2f destination; //its for moving or attacking
     protected Unit()
@@ -56,9 +62,12 @@ public class Unit implements IUnitEventsListener {
     {
         return new Unit(nameOfUnit, id, health, mana, level, armor, damage, range, sight, speed,type, race, faction, position);
     }*/
-    public static String getName()
+    public String getName()
     {
         return nameOfUnit;
+    }
+    public String getPudID() {
+        return PudID;
     }
     @Override
     public void MoveUnitEvent(UnitEvent e) {

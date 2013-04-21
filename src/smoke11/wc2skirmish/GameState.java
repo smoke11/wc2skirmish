@@ -7,9 +7,12 @@ import org.newdawn.slick.state.StateBasedGame;
 import smoke11.DebugView;
 import smoke11.wc2skirmish.events.GeneralEvent;
 import smoke11.wc2skirmish.events.ICameraEventsListener;
+import smoke11.wc2skirmish.units.Unit;
+import smoke11.wc2skirmish.units.UnitFactory;
 import smoke11.wc2utils.Tile;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -24,12 +27,13 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
     /////////
     //for rendering
     private static Tile[][] mapTiles;
-    private static Tile[][] unitTiles;
+    private static Tile[][] unitTiles; //TODO: after fixing rendering for units, check if this variable is needed
+    private static ArrayList<Unit> allunitsList;
 
     private static HashMap<String, SpriteSheet> terrainSpriteSheets;
     private static HashMap<String, Image[]> terrainSpriteTiles;
     private static HashMap<String, SpriteSheet> unitSpriteSheets;
-    private static HashMap<String, HashMap<Integer,Image>> unitSpriteTiles;
+    private static HashMap<String, HashMap<String,Image>> unitSpriteTiles;
 
     private static Vector2f cameraOffset = new Vector2f(0,0);
     /////////
@@ -50,6 +54,18 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
         terrainSpriteTiles =InitializeState.getTerrainSpriteTiles();
         unitSpriteSheets = InitializeState.getUnitSpriteSheets();
         unitSpriteTiles = InitializeState.getUnitSpriteTiles();
+
+        //making starting list of units
+        allunitsList = new ArrayList<Unit>();
+        Unit unit;
+        for (int x=0; x<unitTiles.length;x++)
+            for (int y=0; y<unitTiles[0].length;y++)
+                if(unitTiles[x][y]!=null)
+                {
+                    unit=UnitFactory.createUnit(unitTiles[x][y].Name, 0, new Vector2f(x * 32, y * 32));
+                    if(unit!=null)
+                        allunitsList.add(unit);
+                }
     }
     /////////////////
     //for rendering terrain, tiles are order by mapTiles id
@@ -65,23 +81,36 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
                 terrainSpriteTiles.get(terrainname)[mapTiles[x][y].ID].drawEmbedded(cameraOffset.x+x*32,cameraOffset.y+y*32);
         terrainSpriteSheets.get(terrainname).endUse();
         //render units (buildings are units too!)
-        for(String ssname : unitSpriteSheets.keySet())
+        String ssname;
+        for (Unit unit : allunitsList)
+        {
+            ssname=unit.getName().toLowerCase();
+            SpriteSheet ss = unitSpriteSheets.get(ssname);
+            if(ss==null)
+                continue;
+            ss.startUse();
+            Image img = unitSpriteTiles.get(ssname).get(unit.getPudID());
+            if(img!=null)
+                img.drawEmbedded(cameraOffset.x+unit.getPosition().x,cameraOffset.y+unit.getPosition().y);
+            ss.endUse();
+        }
+/*        for(String ssname : unitSpriteSheets.keySet())
         {
             SpriteSheet ss = unitSpriteSheets.get(ssname);
             if(ss==null)
                 continue;
             ss.startUse();
-            for (int x=0; x<mapTiles.length;x++)
-                for (int y=0; y<mapTiles[0].length;y++)
+            for (int x=0; x<unitTiles.length;x++)
+                for (int y=0; y<unitTiles[0].length;y++)
                 {
                     if(unitTiles[x][y]==null)
                         continue;
-                    Image img = unitSpriteTiles.get(ssname).get(unitTiles[x][y].ID);
+                    Image img = unitSpriteTiles.get(ssname).get(unitTiles[x][y].PudID);
                     if(img!=null)
                         img.drawEmbedded(cameraOffset.x+x*32,cameraOffset.y+y*32);
                 }
             ss.endUse();
-        }
+        }*/
     }
 
     @Override

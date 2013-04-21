@@ -35,12 +35,12 @@ public class InitializeState extends BasicGameState{
         return unitSpriteSheets;
     }
 
-    public static HashMap<String, HashMap<Integer,Image>> getUnitSpriteTiles() {
+    public static HashMap<String, HashMap<String,Image>> getUnitSpriteTiles() {
         return unitSpriteTiles;
     }
 
     private static HashMap<String, SpriteSheet> unitSpriteSheets = new HashMap<String, SpriteSheet>();
-    private static HashMap<String, HashMap<Integer,Image>> unitSpriteTiles = new HashMap<String, HashMap<Integer,Image>>();
+    private static HashMap<String, HashMap<String,Image>> unitSpriteTiles = new HashMap<String, HashMap<String,Image>>();
     public static HashMap<String, SpriteSheet> getTerrainSpriteSheets() {
         return terrainSpriteSheets;
     }

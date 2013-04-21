@@ -2,8 +2,6 @@ package smoke11.wc2skirmish.units;
 
 import org.newdawn.slick.geom.Vector2f;
 
-import java.util.HashMap;
-
 /**
  * Created with IntelliJ IDEA.
  * User: nao
@@ -15,20 +13,24 @@ public class UnitFactory
 {
 
     private static boolean initialized = false;
-    public static Unit createUnit(String nameOfUnit, int id, int faction, Vector2f position)
+    private static int id=0; //to access this, use getID because its autoicremented
+    private static int getId()
+    { id++; return id-1;}
+    public static Unit createUnit(String nameOfUnit, int faction, Vector2f position)
     {
-        if(nameOfUnit=="Peon")
-            return new Peon(id, faction, position);
+        if(nameOfUnit.equalsIgnoreCase("Peon"))
+            return new Peon(getId(), faction, position);
         return null;
     }
 
 }
 //TODO: move data to xml or lua
 class Peon extends Unit {
-    public static final String PUDID="03";
+
     public Peon(int id, int faction, Vector2f position)
     {
         super();
+        this.PudID ="03";
         this.nameOfUnit ="Peon";
         this.health = 30;
         this.mana = 0;

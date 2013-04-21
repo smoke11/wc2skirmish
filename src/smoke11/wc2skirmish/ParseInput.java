@@ -1,10 +1,14 @@
 package smoke11.wc2skirmish;
 
 import org.newdawn.slick.Input;
+import smoke11.wc2skirmish.events.GeneralEvent;
+import smoke11.wc2skirmish.events.ICameraEventsListener;
+import smoke11.wc2skirmish.events.IUnitEventsListener;
+import smoke11.wc2skirmish.events.UnitEvent;
+import smoke11.wc2skirmish.units.Unit;
 
 import java.util.ArrayList;
 import java.util.EventListener;
-import java.util.HashMap;
 import java.util.List;
 
 ///////////////////
@@ -16,12 +20,16 @@ import java.util.List;
 public class ParseInput {
     private static List _listeners = new ArrayList(); //all listeners
     private static ArrayList<ICameraEventsListener> _cameraListeners = new ArrayList(); //listeners for camera events
+    private static ArrayList<IUnitEventsListener> _unitListeners = new ArrayList(); //listeners for units events
+    private static Unit selectedUnit;
     public static enum Controls
     {
         CAMERA_UP(Input.KEY_UP),
         CAMERA_DOWN(Input.KEY_DOWN),
         CAMERA_LEFT(Input.KEY_LEFT),
-        CAMERA_RIGHT(Input.KEY_RIGHT);
+        CAMERA_RIGHT(Input.KEY_RIGHT),
+        UNIT_MOVE(Input.MOUSE_RIGHT_BUTTON);
+
         private final int index;
 
         Controls(int index) {
@@ -41,28 +49,39 @@ public class ParseInput {
                 actions.add(control.name());
         fireEvent(actions, delta);
     }
-    public static void fireEvent(ArrayList<String> actions, int delta)
+    private static void fireEvent(ArrayList<String> actions, int delta)
     {
         for (String action : actions)
         {
             if(action.contains("CAMERA"))
                 fireCameraEvent(action, delta);
+            else if(action.contains("UNIT"))
+                fireUnitEvent(action,delta);
         }
     }
-    public static void fireCameraEvent(String action, int delta)
+    private static void fireCameraEvent(String action, int delta)
     {
         for (ICameraEventsListener listener : _cameraListeners)
-            listener.MoveCamera(action,delta);
+            listener.MoveCameraEvent(new GeneralEvent(action,delta));
 
+    }
+    private static void fireUnitEvent(String action, int delta)
+    {
+        if(action.equalsIgnoreCase(IUnitEventsListener.PossibleActions.UNIT_MOVE.name()))
+            selectedUnit.MoveUnitEvent(new UnitEvent(action,delta,selectedUnit));
     }
     public static synchronized void addEventListener(EventListener listener)  {
         _listeners.add(listener);
         if(listener instanceof ICameraEventsListener)
             _cameraListeners.add((ICameraEventsListener)listener);
+        else if(listener instanceof  IUnitEventsListener)
+            _unitListeners.add((IUnitEventsListener)listener);
     }
     public static synchronized void removeEventListener(EventListener listener)   {
         _listeners.remove(listener);
         if(listener instanceof ICameraEventsListener)
             _cameraListeners.remove(listener);
+        else if(listener instanceof IUnitEventsListener)
+            _unitListeners.remove(listener);
     }
 }

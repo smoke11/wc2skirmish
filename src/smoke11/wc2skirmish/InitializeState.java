@@ -23,7 +23,6 @@ public class InitializeState extends BasicGameState{
     private static String mainDir="D:\\datafiles\\"; //use this to change path to files of this program
     private static boolean firstTimeOpen=true;
     private static Tile[][] mapTiles;
-
     public static Tile[][] getUnitTiles() {
         return unitTiles;
     }
@@ -72,7 +71,7 @@ public class InitializeState extends BasicGameState{
         if(firstTimeOpen)
             readSettings();
         readImages();
-        loadMap();
+        readMapData();
         startGame(stateBasedGame);
 
 
@@ -132,7 +131,7 @@ public class InitializeState extends BasicGameState{
             for(String name : unitSpriteSheets.keySet())
                 unitSpriteTiles.put(name, SpritesheetParser.cutSpriteSheet(unitSpriteSheets.get(name), XMLPudSettingsReader.UnitTiles, XMLSettingsReader.recogniseWith.get(name), XMLSettingsReader.ignoreIfHave.get(name)));
     }
-    private void loadMap()
+    private void readMapData()
     {
         FileOpenPanel f = new FileOpenPanel();
 
@@ -149,7 +148,7 @@ public class InitializeState extends BasicGameState{
             p.prepareTiles(XMLPudSettingsReader.SortedTerrainTiles, XMLPudSettingsReader.UnitTiles);
             mapTiles =p.mapTiles;
             unitTiles=p.unitTiles;
-
+            //TODO: need to get faction from map data for units and buildings
         }
     }
     private void startGame(StateBasedGame stateBasedGame)

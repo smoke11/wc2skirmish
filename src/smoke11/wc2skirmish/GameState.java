@@ -1,15 +1,15 @@
 package smoke11.wc2skirmish;
 
-import org.lwjgl.util.vector.Vector2f;
+import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.*;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import smoke11.DebugView;
+import smoke11.wc2skirmish.events.GeneralEvent;
+import smoke11.wc2skirmish.events.ICameraEventsListener;
 import smoke11.wc2utils.Tile;
 
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -21,6 +21,8 @@ import java.util.HashMap;
  */
 public class GameState extends BasicGameState implements ICameraEventsListener {
     private static final int id = 2;
+    /////////
+    //for rendering
     private static Tile[][] mapTiles;
     private static Tile[][] unitTiles;
 
@@ -30,6 +32,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
     private static HashMap<String, HashMap<Integer,Image>> unitSpriteTiles;
 
     private static Vector2f cameraOffset = new Vector2f(0,0);
+    /////////
 
     private static HashMap<String, Integer> controls = new HashMap<String, Integer>(); //TODO: move this to xml and read it from file
 
@@ -39,13 +42,14 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
 
     @Override
     public void init(GameContainer gameContainer, StateBasedGame stateBasedGame) throws SlickException {
+        ParseInput.addEventListener(this);
+
         mapTiles = InitializeState.getMapTiles();
         unitTiles = InitializeState.getUnitTiles();
         terrainSpriteSheets = InitializeState.getTerrainSpriteSheets();
         terrainSpriteTiles =InitializeState.getTerrainSpriteTiles();
         unitSpriteSheets = InitializeState.getUnitSpriteSheets();
         unitSpriteTiles = InitializeState.getUnitSpriteTiles();
-        ParseInput.addEventListener(this);
     }
     /////////////////
     //for rendering terrain, tiles are order by mapTiles id
@@ -89,17 +93,18 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
 
 
     @Override
-    public void MoveCamera(String whichSide, int delta) {
+    public void MoveCameraEvent(GeneralEvent e) {
+        String whichSide = e.action;
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Moving Camera to "+whichSide);
         int cameraspeed=1;  //TODO: move this to some settings actions, preferably readed from xml
         if(whichSide.contains(PossibleActions.CAMERA_UP.name()))
-            cameraOffset.y+=cameraspeed*delta;
+            cameraOffset.y+=cameraspeed*e.delta;
         if(whichSide.contains(PossibleActions.CAMERA_DOWN.name()))
-            cameraOffset.y-=cameraspeed*delta;
+            cameraOffset.y-=cameraspeed*e.delta;
         if(whichSide.contains(PossibleActions.CAMERA_LEFT.name()))
-            cameraOffset.x+=cameraspeed*delta;
+            cameraOffset.x+=cameraspeed*e.delta;
         if(whichSide.contains(PossibleActions.CAMERA_RIGHT.name()))
-            cameraOffset.x-=cameraspeed*delta;
+            cameraOffset.x-=cameraspeed*e.delta;
     }
 
 

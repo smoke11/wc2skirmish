@@ -1,4 +1,4 @@
-package smoke11.wc2skirmish;
+package smoke11.wc2skirmish.events;
 
 import java.util.EventListener;
 
@@ -17,5 +17,5 @@ public interface ICameraEventsListener extends EventListener {
         CAMERA_LEFT,
         CAMERA_RIGHT;
     }
-    public void MoveCamera(String whichSide, int delta);
+    public void MoveCameraEvent(GeneralEvent e);
 }

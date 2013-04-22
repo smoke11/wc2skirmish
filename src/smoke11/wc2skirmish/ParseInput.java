@@ -50,7 +50,6 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
 
     public static void keyboardInputUpdate(Input input, int delta)
     {
-        actions = new ArrayList<String>();
         for(KeyboardControls control : KeyboardControls.values())
             if(input.isKeyDown(control.index()))
                 actions.add(control.name());
@@ -106,8 +105,8 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
                 fireCameraEvent(action, delta);
             else if(split[0].contains("UNIT"))
                 fireUnitEvent(action,delta);
-            actions.remove(action);
         }
+        actions.removeAll(actions);
     }
     private static void fireCameraEvent(String action, int delta)
     {
@@ -149,4 +148,4 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
 }
 
 interface ISelectedUnitsEventListener { void UnitsSelectedEvent(ArrayList<Unit> units);} //getting actual list of selected units from GameState class
-interface IGameState_MouseEventsListener{   void mouseDragged(int oldx,int oldy,int newx,int newy); void mouseClicked(int button,int x,int y,int clickCount);}
+interface IGameState_MouseEventsListener{   void mouseDragged(int oldx,int oldy,int newx,int newy); void mouseClicked(int button,int x,int y,int clickCount);} //getting mouse input from GameState class

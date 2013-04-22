@@ -14,6 +14,7 @@ import smoke11.wc2utils.xml.XML_Tiles_SettingsCreatorIter;
 import smoke11.wc2utils.xml.XML_Units_SettingsCreatorIter;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -23,11 +24,11 @@ public class InitializeState extends BasicGameState{
     private static String mainDir="D:\\datafiles\\"; //use this to change path to files of this program
     private static boolean firstTimeOpen=true;
     private static Tile[][] mapTiles;
-    public static Tile[][] getUnitTiles() {
+    public static ArrayList<Tile>[][] getUnitTiles() {
         return unitTiles;
     }
 
-    private static Tile[][] unitTiles;
+    private static ArrayList<Tile>[][] unitTiles;
     private static HashMap<String, SpriteSheet> terrainSpriteSheets = new HashMap<String, SpriteSheet>();
     private static HashMap<String, Image[]> terrainSpriteTiles = new HashMap<String, Image[]>();
 

@@ -23,12 +23,14 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     private static final int id = 2;
     private static ParseInput parseInput;
     /////////
+    //units - all lists should be updated when something happens, its job for
+    private static ArrayList<Unit> allunitsList;  //no grouping
+    private static ArrayList<Unit>[][] allUnitsByCoord;
+    private static ArrayList<Unit> selectedUnits; //only selected (by player) units
+    /////////
     //for rendering
     private static Tile[][] mapTiles;
-    private static Tile[][] unitTiles; //needed for making list of units
-    private static ArrayList<Unit> allunitsList;
-    private static ArrayList<Unit> selectedUnits;
-
+    private static ArrayList<Tile>[][] unitTiles; //TODO: it`s need to be updated when unit change etc.
     private static HashMap<String, SpriteSheet> terrainSpriteSheets;
     private static HashMap<String, Image[]> terrainSpriteTiles;
     private static HashMap<String, SpriteSheet> unitSpriteSheets;
@@ -54,18 +56,31 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         unitSpriteSheets = InitializeState.getUnitSpriteSheets();
         unitSpriteTiles = InitializeState.getUnitSpriteTiles();
 
-        //making starting list of units
+        //making starting lists of units
         allunitsList = new ArrayList<Unit>();
+        allUnitsByCoord = new ArrayList[unitTiles.length][unitTiles[0].length];
         selectedUnits = new ArrayList<Unit>();
         Unit unit;
         for (int x=0; x<unitTiles.length;x++)
             for (int y=0; y<unitTiles[0].length;y++)
+            {
+                allUnitsByCoord[x][y] = new ArrayList<Unit>(); //for initializing all of fields from list
                 if(unitTiles[x][y]!=null)
                 {
-                    unit=UnitFactory.createUnit(unitTiles[x][y].Name, 0, new Vector2f(x * 32, y * 32));
-                    if(unit!=null)
-                        allunitsList.add(unit);
+                    for(Tile tile : unitTiles[x][y])
+                    {
+                        if(tile!=null)
+                        {
+                            unit=UnitFactory.createUnit(tile.Name, 0, new Vector2f(x * 32, y * 32));
+                            if(unit!=null)
+                            {
+                                allunitsList.add(unit);
+                                allUnitsByCoord[x][y].add(unit);
+                            }
+                        }
+                    }
                 }
+            }
     }
     /////////////////
     //for rendering terrain, tiles are order by mapTiles id
@@ -131,9 +146,8 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     public void SelectUnitEvent(WorldEvent e) {
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Getting mouse selection from ParseInput and passing selected units to ParseInput");
         selectedUnits = new ArrayList<Unit>();
-        Rectangle rect = new Rectangle(e.selectRect[0]/32,e.selectRect[1]/32,(e.selectRect[2]/32-e.selectRect[0]/32),(e.selectRect[3]/32-e.selectRect[1]/32));
-        for (Unit unit : allunitsList) //TODO: make efficient solution to this, it works now because there are few units on map. maybe getting from array unitTiles (but it`s not updated so think about that too)
-            if(rect.contains(unit.getTilePosition().x,unit.getTilePosition().y))
+        if(e.selectRect.length==2) //selecting only one unit, by mouse click
+            for (Unit unit : allUnitsByCoord[e.selectRect[0]/32][e.selectRect[1]/32])
                 selectedUnits.add(unit);
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Selected "+selectedUnits.size()+" units.");
         parseInput.UnitsSelectedEvent(selectedUnits);

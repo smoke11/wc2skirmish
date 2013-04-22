@@ -121,7 +121,8 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     public void update(GameContainer gameContainer, StateBasedGame stateBasedGame, int i) throws SlickException {
 
         ParseInput.InputUpdate(gameContainer.getInput(), i);
-
+        for (Unit unit: allunitsList)
+            unit.Update(i);
     }
 
     //////////////////

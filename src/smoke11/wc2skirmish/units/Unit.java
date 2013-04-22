@@ -74,14 +74,23 @@ public class Unit implements IUnitEventsListener {
     public String getPudID() {
         return PudID;
     }
+
+    public void Update(int delta)
+    {
+        if(destination!=null)//if there is destination, then move unit to it
+        {}
+    }
     @Override
     public void MoveUnitEvent(UnitEvent e) {
         destination = e.destinationVector;
+
+    }
+    private void MoveUnit(int delta)
+    {
+        //TODO: http://stackoverflow.com/questions/9742039/a-pathfinding-java-slick2d-library
         for (IUnitUpdatesEventsListener listener : _listeners)
             listener.UnitMovedEvent(new UnitUpdatesEvent(IUnitUpdatesEventsListener.possibleActions.UNIT_MOVED.name(),this,position,destination));
-        position = destination; //TODO: make proper unit movement
     }
-
 
     public static synchronized void addEventListener(IUnitUpdatesEventsListener listener)  {
         _listeners.add(listener);

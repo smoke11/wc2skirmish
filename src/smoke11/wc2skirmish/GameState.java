@@ -1,5 +1,6 @@
 package smoke11.wc2skirmish;
 
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.*;
 import org.newdawn.slick.state.BasicGameState;
@@ -7,6 +8,8 @@ import org.newdawn.slick.state.StateBasedGame;
 import smoke11.DebugView;
 import smoke11.wc2skirmish.events.GeneralEvent;
 import smoke11.wc2skirmish.events.ICameraEventsListener;
+import smoke11.wc2skirmish.events.IWorldEventsListener;
+import smoke11.wc2skirmish.events.WorldEvent;
 import smoke11.wc2skirmish.units.Unit;
 import smoke11.wc2skirmish.units.UnitFactory;
 import smoke11.wc2utils.Tile;
@@ -15,20 +18,16 @@ import smoke11.wc2utils.Tile;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nao
- * Date: 19.04.13
- * Time: 22:57
- * To change this template use File | Settings | File Templates.
- */
-public class GameState extends BasicGameState implements ICameraEventsListener {
+
+public class GameState extends BasicGameState implements ICameraEventsListener, IWorldEventsListener {
     private static final int id = 2;
+    private static ParseInput parseInput;
     /////////
     //for rendering
     private static Tile[][] mapTiles;
-    private static Tile[][] unitTiles; //TODO: after fixing rendering for units, check if this variable is needed
+    private static Tile[][] unitTiles; //needed for making list of units
     private static ArrayList<Unit> allunitsList;
+    private static ArrayList<Unit> selectedUnits;
 
     private static HashMap<String, SpriteSheet> terrainSpriteSheets;
     private static HashMap<String, Image[]> terrainSpriteTiles;
@@ -39,7 +38,6 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
     /////////
 
     private static HashMap<String, Integer> controls = new HashMap<String, Integer>(); //TODO: move this to xml and read it from file
-
     public int getID() {
         return id;
     }
@@ -47,6 +45,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
     @Override
     public void init(GameContainer gameContainer, StateBasedGame stateBasedGame) throws SlickException {
         ParseInput.addEventListener(this);
+        parseInput = new ParseInput();
 
         mapTiles = InitializeState.getMapTiles();
         unitTiles = InitializeState.getUnitTiles();
@@ -57,6 +56,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
 
         //making starting list of units
         allunitsList = new ArrayList<Unit>();
+        selectedUnits = new ArrayList<Unit>();
         Unit unit;
         for (int x=0; x<unitTiles.length;x++)
             for (int y=0; y<unitTiles[0].length;y++)
@@ -94,29 +94,19 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
                 img.drawEmbedded(cameraOffset.x+unit.getPosition().x,cameraOffset.y+unit.getPosition().y);
             ss.endUse();
         }
-/*        for(String ssname : unitSpriteSheets.keySet())
+        //rendering tilebox for selected units
+        for (Unit unit : selectedUnits)
         {
-            SpriteSheet ss = unitSpriteSheets.get(ssname);
-            if(ss==null)
-                continue;
-            ss.startUse();
-            for (int x=0; x<unitTiles.length;x++)
-                for (int y=0; y<unitTiles[0].length;y++)
-                {
-                    if(unitTiles[x][y]==null)
-                        continue;
-                    Image img = unitSpriteTiles.get(ssname).get(unitTiles[x][y].PudID);
-                    if(img!=null)
-                        img.drawEmbedded(cameraOffset.x+x*32,cameraOffset.y+y*32);
-                }
-            ss.endUse();
-        }*/
+            graphics.setColor(Color.white);
+            graphics.draw(new Rectangle(unit.getPosition().x,unit.getPosition().y,32,32)); //TODO: make proper sizes for units!
+        }
     }
 
     @Override
     public void update(GameContainer gameContainer, StateBasedGame stateBasedGame, int i) throws SlickException {
 
-        ParseInput.update(gameContainer.getInput(),i);
+        ParseInput.keyboardInputUpdate(gameContainer.getInput(), i);
+
     }
 
 
@@ -126,15 +116,39 @@ public class GameState extends BasicGameState implements ICameraEventsListener {
         String whichSide = e.action;
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Moving Camera to "+whichSide);
         int cameraspeed=1;  //TODO: move this to some settings actions, preferably readed from xml
-        if(whichSide.contains(PossibleActions.CAMERA_UP.name()))
+        if(whichSide.contains(ICameraEventsListener.possibleActions.CAMERA_UP.name()))
             cameraOffset.y+=cameraspeed*e.delta;
-        if(whichSide.contains(PossibleActions.CAMERA_DOWN.name()))
+        if(whichSide.contains(ICameraEventsListener.possibleActions.CAMERA_DOWN.name()))
             cameraOffset.y-=cameraspeed*e.delta;
-        if(whichSide.contains(PossibleActions.CAMERA_LEFT.name()))
+        if(whichSide.contains(ICameraEventsListener.possibleActions.CAMERA_LEFT.name()))
             cameraOffset.x+=cameraspeed*e.delta;
-        if(whichSide.contains(PossibleActions.CAMERA_RIGHT.name()))
+        if(whichSide.contains(ICameraEventsListener.possibleActions.CAMERA_RIGHT.name()))
             cameraOffset.x-=cameraspeed*e.delta;
     }
 
-
+    //getting from ParseInput class how area was selected by mouse, getting units that are inside it and return list of units to ParseInput class
+    @Override
+    public void SelectUnitEvent(WorldEvent e) {
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Getting mouse selection from ParseInput and passing selected units to ParseInput");
+        selectedUnits = new ArrayList<Unit>();
+        Rectangle rect = new Rectangle(e.selectRect[0]/32,e.selectRect[1]/32,(e.selectRect[2]/32-e.selectRect[0]/32),(e.selectRect[3]/32-e.selectRect[1]/32));
+        for (Unit unit : allunitsList) //TODO: make efficient solution to this, it works now because there are few units on map. maybe getting from array unitTiles (but it`s not updated so think about that too)
+            if(rect.contains(unit.getTilePosition().x,unit.getTilePosition().y))
+                selectedUnits.add(unit);
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Selected "+selectedUnits.size()+" units.");
+        parseInput.UnitsSelectedEvent(selectedUnits);
+    }
+    //// /////////
+    //Mouse Input
+    //////////////
+    @Override
+    public void mouseClicked(int button,int x,int y,int clickCount)
+    {
+         parseInput.mouseClicked(button,x,y,clickCount);
+    }
+    @Override
+    public void mouseDragged(int oldx,int oldy,int newx,int newy)
+    {
+        parseInput.mouseDragged(oldx,oldy,newx,newy);
+    }
 }

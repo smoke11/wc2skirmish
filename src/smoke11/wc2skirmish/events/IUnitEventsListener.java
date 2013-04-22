@@ -10,7 +10,7 @@ import java.util.EventListener;
  * To change this template use File | Settings | File Templates.
  */
 public interface IUnitEventsListener extends EventListener {
-    public enum PossibleActions
+    public enum possibleActions
     {
         UNIT_MOVE,
         UNIT_STOP,

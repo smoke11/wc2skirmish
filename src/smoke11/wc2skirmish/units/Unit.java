@@ -19,7 +19,7 @@ public class Unit implements IUnitEventsListener {
         FLYING,
         SHIP
     }
-    protected static String nameOfUnit;
+    protected static String nameOfUnit; //TODO: make this and next one as final
     protected static String PudID;
     protected int id;
     protected int health;
@@ -37,7 +37,9 @@ public class Unit implements IUnitEventsListener {
     public Vector2f getPosition() {
         return position;
     }
-
+    public Vector2f getTilePosition() {
+        return new Vector2f(position.x/32,position.y/32);
+    }
     protected Vector2f position;
     protected Vector2f destination; //its for moving or attacking
     protected Unit()

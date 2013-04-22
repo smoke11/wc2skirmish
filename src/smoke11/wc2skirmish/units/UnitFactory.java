@@ -20,6 +20,8 @@ public class UnitFactory
     {
         if(nameOfUnit.equalsIgnoreCase("Peon"))
             return new Peon(getId(), faction, position);
+        if(nameOfUnit.equalsIgnoreCase("Peasant"))
+            return new Peasant(getId(), faction, position);
         return null;
     }
 
@@ -42,6 +44,30 @@ class Peon extends Unit {
         this.speed = 10;
         this.type = Types.MELEE;
         this.race = "Orc";
+        this.id = id;
+        this.faction = faction;
+        this.position = position;
+
+    }
+
+}
+class Peasant extends Unit {
+
+    public Peasant(int id, int faction, Vector2f position)
+    {
+        super();
+        this.PudID ="02";
+        this.nameOfUnit ="Peasant";
+        this.health = 30;
+        this.mana = 0;
+        this.level = 1;
+        this.armor=1;
+        this.damage = new Vector2f(1,5);
+        this.range = 1;
+        this.sight = 4;
+        this.speed = 10;
+        this.type = Types.MELEE;
+        this.race = "Human";
         this.id = id;
         this.faction = faction;
         this.position = position;

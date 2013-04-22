@@ -3,6 +3,7 @@ package smoke11.wc2skirmish;
 
 import org.newdawn.slick.Input;
 import org.newdawn.slick.MouseListener;
+import org.newdawn.slick.geom.Vector2f;
 import smoke11.DebugView;
 import smoke11.wc2skirmish.events.*;
 import smoke11.wc2skirmish.units.Unit;
@@ -12,7 +13,7 @@ import java.util.EventListener;
 import java.util.List;
 
 ///////////////////
-//Idea of this class is to parse input from state "what keys are down" to "what actions are needed to be processed?" (keyboardInputUpdate method)
+//Idea of this class is to parse input from state "what keys are down" to "what actions are needed to be processed?" (InputUpdate method)
 //After that, fireEvent is checking which type of events are needed to fired and fire them.
 //And there, all listeners get type of actions, needed variables and processing it (or ignore it) acordingly.
 //////////////////
@@ -48,7 +49,7 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
 
     }
 
-    public static void keyboardInputUpdate(Input input, int delta)
+    public static void InputUpdate(Input input, int delta)
     {
         for(KeyboardControls control : KeyboardControls.values())
             if(input.isKeyDown(control.index()))
@@ -83,7 +84,10 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
     public void mouseClicked(int button, int x, int y, int clickCount) {
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"ParseInput","Mouse clicked: "+x+","+y);
         mouseRect = new int[]{x,y};
-        actions.add(IWorldEventsListener.possibleActions.WORLD_SELECTUNIT.name());
+        if(button==0)
+            actions.add(IWorldEventsListener.possibleActions.WORLD_SELECTUNIT.name());
+        else if(button==1)
+            actions.add(IUnitEventsListener.possibleActions.UNIT_MOVE.name());
     }
     //////////////
     //Events
@@ -118,7 +122,7 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
     {
         if(action.equalsIgnoreCase(IUnitEventsListener.possibleActions.UNIT_MOVE.name()))
             for (Unit unit : selectedUnits)
-                unit.MoveUnitEvent(new UnitEvent(action,delta, unit));
+                unit.MoveUnitEvent(new UnitEvent(action,delta,unit, new Vector2f(mouseRect[0],mouseRect[1])));
     }
     private static void fireWorldEvent(String action, int delta)
     {

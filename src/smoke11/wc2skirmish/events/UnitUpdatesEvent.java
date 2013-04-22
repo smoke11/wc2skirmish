@@ -10,18 +10,16 @@ import smoke11.wc2skirmish.units.Unit;
  * Time: 18:06
  * To change this template use File | Settings | File Templates.
  */
-public class UnitEvent extends GeneralEvent {
+public class UnitUpdatesEvent extends GeneralEvent {
     public Unit sourceUnit;
     public Unit targetUnit;
+    public Vector2f startingVector;
     public Vector2f destinationVector;
-    public UnitEvent(String action, int delta, Unit sourceUnit) {
-        super(action,delta);
-        this.sourceUnit=sourceUnit;
-    }
-    public UnitEvent(String action, int delta, Unit sourceUnit, Vector2f move)
+    public UnitUpdatesEvent(String action, Unit sourceUnit, Vector2f startingVector, Vector2f destinationVector)
     {
-        super(action, delta);
+        super(action, -1);
         this.sourceUnit=sourceUnit;
-        destinationVector =move;
+        this.startingVector=startingVector;
+        this.destinationVector=destinationVector;
     }
 }

@@ -1,8 +1,11 @@
 package smoke11.wc2skirmish.units;
 
 import org.newdawn.slick.geom.Vector2f;
-import smoke11.wc2skirmish.events.IUnitEventsListener;
-import smoke11.wc2skirmish.events.UnitEvent;
+import smoke11.wc2skirmish.events.*;
+
+import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,7 +15,7 @@ import smoke11.wc2skirmish.events.UnitEvent;
  * To change this template use File | Settings | File Templates.
  */
 public class Unit implements IUnitEventsListener {
-
+    private static ArrayList<IUnitUpdatesEventsListener> _listeners = new ArrayList(); //all listeners that is needed to be informed that unit do something
     public static enum Types{
         MELEE,
         RANGED,
@@ -73,6 +76,19 @@ public class Unit implements IUnitEventsListener {
     }
     @Override
     public void MoveUnitEvent(UnitEvent e) {
+        destination = e.destinationVector;
+        for (IUnitUpdatesEventsListener listener : _listeners)
+            listener.UnitMovedEvent(new UnitUpdatesEvent(IUnitUpdatesEventsListener.possibleActions.UNIT_MOVED.name(),this,position,destination));
         position = destination; //TODO: make proper unit movement
+    }
+
+
+    public static synchronized void addEventListener(IUnitUpdatesEventsListener listener)  {
+        _listeners.add(listener);
+
+    }
+    public static synchronized void removeEventListener(IUnitUpdatesEventsListener listener)   {
+        _listeners.remove(listener);
+
     }
 }

@@ -16,17 +16,21 @@ import smoke11.wc2utils.Tile;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
+////////////////////
+//GameState is in charge of running actual game.
+//init stage is for getting necessary data from InitilizeState //TODO: write some info about how events are working and dependencies
+///////////////////
 public class GameState extends BasicGameState implements ICameraEventsListener, IWorldEventsListener, IUnitUpdatesEventsListener{
     private static final int id = 2;
     private static ParseInput parseInput;
     private static Terrain terrain;
     private static AStarPathFinder pathFinder;
     /////////
-    //units - all lists should be updated when something happens, its job for
+    //units - all lists should be updated when something happens, its job for events
     private static ArrayList<Unit> allunitsList;  //no grouping
     private static ArrayList<Unit>[][] allUnitsByCoord;
     private static ArrayList<Unit> selectedUnits; //only selected (by player) units
+    private static ArrayList<Unit> unitsNeededToBeUpdated; //for making less references
     /////////
     /////////
     //for rendering
@@ -50,6 +54,9 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         ParseInput.addEventListener(this);
         parseInput = new ParseInput();
         Unit.addEventListener(this);
+
+        gameContainer.setMinimumLogicUpdateInterval(17);
+        gameContainer.setMaximumLogicUpdateInterval(18);
         screenRes = new Vector2f(gameContainer.getScreenWidth(),gameContainer.getScreenHeight());
         terrain = new Terrain(InitializeState.getMapTiles());
         pathFinder = new AStarPathFinder(terrain,99999,false);
@@ -63,6 +70,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         allunitsList = new ArrayList<Unit>();
         allUnitsByCoord = new ArrayList[unitTiles.length][unitTiles[0].length];
         selectedUnits = new ArrayList<Unit>();
+        unitsNeededToBeUpdated = new ArrayList<Unit>();
         Unit unit;
         for (int x=0; x<unitTiles.length;x++)
             for (int y=0; y<unitTiles[0].length;y++)
@@ -74,7 +82,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
                     {
                         if(tile!=null)
                         {
-                            unit=UnitFactory.createUnit(tile.Name, 0, new Vector2f(x * 32, y * 32));
+                            unit=UnitFactory.createUnit(tile.Name, 0, new Vector2f(x, y));
                             if(unit!=null)
                             {
                                 allunitsList.add(unit);
@@ -125,7 +133,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     public void update(GameContainer gameContainer, StateBasedGame stateBasedGame, int i) throws SlickException {
 
         ParseInput.InputUpdate(gameContainer.getInput(), i);
-        for (Unit unit: allunitsList)
+        for (Unit unit: unitsNeededToBeUpdated)
             unit.Update(i);
     }
 
@@ -169,7 +177,11 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     public void MoveUnitEvent(WorldEvent e) {
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Selecting units.");
         for (Unit unit : selectedUnits)
+        {
+            unitsNeededToBeUpdated.add(unit);
             unit.MoveUnitEvent(new UnitEvent(Unit.possibleActions.UNIT_MOVE.name(),0,unit,pathFinder.findPath(unit,(int)unit.getTilePosition().x,(int)unit.getTilePosition().y,e.selectRect[0]/32,e.selectRect[1]/32)));
+
+        }
     }
 
 
@@ -192,7 +204,10 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     ////////////
     @Override
     public void UnitMovedEvent(UnitUpdatesEvent e) { //update postion of unit in array sorted by coordinats
-        allUnitsByCoord[(int)e.startingVector.x/32][(int)e.startingVector.y/32].remove(e.sourceUnit);
-        allUnitsByCoord[(int)e.destinationVector.x/32][(int)e.destinationVector.y/32].add(e.sourceUnit);
+        if(e.startingVector!=null&&e.destinationVector!=null)
+        {
+        allUnitsByCoord[(int)e.startingVector.x][(int)e.startingVector.y].remove(e.sourceUnit);
+        allUnitsByCoord[(int)e.destinationVector.x][(int)e.destinationVector.y].add(e.sourceUnit);
+        }
     }
 }

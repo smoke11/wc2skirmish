@@ -17,7 +17,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
+//////////
+//InitializeState job is to load req data (if loaded first time), load map. prepare variables and go on to next state - GameState
+//from there GameState will take necessary data from InitializeState and run proper game.
+//InitializeState will be called (or runned, w/e) every time that there is a need of loading new map
+/////////
 public class InitializeState extends BasicGameState{
     /** The ID given to this state */
     private static final int id = 1;

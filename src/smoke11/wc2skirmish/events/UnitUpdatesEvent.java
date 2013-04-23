@@ -15,7 +15,7 @@ public class UnitUpdatesEvent extends GeneralEvent {
     public Unit targetUnit;
     public Vector2f startingVector;
     public Vector2f destinationVector;
-    public UnitUpdatesEvent(String action, Unit sourceUnit, Vector2f startingVector, Vector2f destinationVector)
+    public UnitUpdatesEvent(String action, Unit sourceUnit, Vector2f startingTileVector, Vector2f destinationTileVector)
     {
         super(action, -1);
         this.sourceUnit=sourceUnit;

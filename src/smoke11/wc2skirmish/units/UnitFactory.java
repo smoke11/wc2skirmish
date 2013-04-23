@@ -16,12 +16,12 @@ public class UnitFactory
     private static int id=0; //to access this, use getID because its autoicremented
     private static int getId()
     { id++; return id-1;}
-    public static Unit createUnit(String nameOfUnit, int faction, Vector2f position)
+    public static Unit createUnit(String nameOfUnit, int faction, Vector2f tilePosition)
     {
         if(nameOfUnit.equalsIgnoreCase("Peon"))
-            return new Peon(getId(), faction, position);
+            return new Peon(getId(), faction, tilePosition);
         if(nameOfUnit.equalsIgnoreCase("Peasant"))
-            return new Peasant(getId(), faction, position);
+            return new Peasant(getId(), faction, tilePosition);
         return null;
     }
 
@@ -29,7 +29,7 @@ public class UnitFactory
 //TODO: move data to xml or lua
 class Peon extends Unit {
 
-    public Peon(int id, int faction, Vector2f position)
+    public Peon(int id, int faction, Vector2f tilePosition)
     {
         super();
         this.PudID ="03";
@@ -46,14 +46,14 @@ class Peon extends Unit {
         this.race = "Orc";
         this.id = id;
         this.faction = faction;
-        this.position = position;
+        this.position = new Vector2f(tilePosition.x*32,tilePosition.y*32);
 
     }
 
 }
 class Peasant extends Unit {
 
-    public Peasant(int id, int faction, Vector2f position)
+    public Peasant(int id, int faction, Vector2f tilePosition)
     {
         super();
         this.PudID ="02";
@@ -70,7 +70,7 @@ class Peasant extends Unit {
         this.race = "Human";
         this.id = id;
         this.faction = faction;
-        this.position = position;
+        this.position = new Vector2f(tilePosition.x*32,tilePosition.y*32);
 
     }
 

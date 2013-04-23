@@ -7,8 +7,6 @@ import smoke11.DebugView;
 import smoke11.wc2skirmish.events.*;
 
 import java.util.ArrayList;
-import java.util.EventListener;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -49,10 +47,19 @@ public class Unit implements IUnitEventsListener, Mover{
         return position;
     }
     public Vector2f getTilePosition() {
-        return new Vector2f(position.x/32,position.y/32);
+        return new Vector2f((int)position.x/32,(int)position.y/32);
+    }
+    public Vector2f getLastTilePosition() {
+        return new Vector2f((int)lastPosition.x/32,(int)lastPosition.y/32);
+    }
+    public Vector2f getdestinationTileVector()
+    {
+        return new Vector2f((int)destinationVector.x/32,(int)destinationVector.y/32);
     }
     protected Vector2f position;
-    protected Path destination; //its for moving or attacking
+    protected Vector2f lastPosition;
+    protected Vector2f destinationVector; //next step in destinationPath
+    protected Path destinationPath; //its for moving or attacking
     protected int destIndex;
     protected Unit()
     {}
@@ -86,32 +93,44 @@ public class Unit implements IUnitEventsListener, Mover{
 
     public void Update(int delta)
     {
-        if(destination!=null)//if there is destination, then move unit to it
+        if(destinationPath !=null)//if there is destinationPath, then move unit to it
             MoveUnit(delta);
     }
     @Override
     public void MoveUnitEvent(UnitEvent e) {
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","Moving event, preparing to move.");
-        destIndex=0;
-        destination = e.destinationPath;
+        destIndex=1;
+        destinationPath = e.destinationPath;
+        destinationVector=position.copy();
 
     }
     private void MoveUnit(int delta)
     {
-        Vector2f oldPos;
-        if(destIndex<destination.getLength())
-        {
-            oldPos=position;
-        int x = destination.getStep(destIndex).getX();
-        int y = destination.getStep(destIndex).getY();
-        position = new Vector2f(x*32,y*32);
-        destIndex++;
 
+        if(destIndex< destinationPath.getLength())  //if unit isn`t in destination point (if it exist), get next one
+        {
+            lastPosition=position.copy();
+            Vector2f dest = getdestinationTileVector();
+            Vector2f pos = getTilePosition();
+            if(compareVector2f(getdestinationTileVector(),getTilePosition())) //because unit 'moving' at one tile at time, if unit reach destination tile it is needed to get next one on path
+            {
+                int x = destinationPath.getStep(destIndex).getX();
+                int y = destinationPath.getStep(destIndex).getY();
+                destinationVector = new Vector2f(x*32,y*32);
+                destIndex++;
+            }
+            Vector2f sub = destinationVector.copy();  //TODO: move from slick Vector2f class to some Vector2 class (for int), to much work with this class
+            sub.sub(position);
+            Vector2f norm = sub.copy().normalise();
+            Vector2f moveVec = new Vector2f((delta/17f)*speed*norm.x,(delta/17f)*speed*norm.y);
+            position.add(moveVec);
+            Vector2f lastpos=getLastTilePosition();
+            pos = getTilePosition();
         for (IUnitUpdatesEventsListener listener : _listeners)
-            listener.UnitMovedEvent(new UnitUpdatesEvent(IUnitUpdatesEventsListener.possibleActions.UNIT_MOVED.name(),this,oldPos,this.position));
+            listener.UnitMovedEvent(new UnitUpdatesEvent(IUnitUpdatesEventsListener.possibleActions.UNIT_MOVED.name(),this,lastpos,pos));
         }
         else
-            destination=null;
+            destinationPath =null;
     }
 
     public static synchronized void addEventListener(IUnitUpdatesEventsListener listener)  {
@@ -122,4 +141,5 @@ public class Unit implements IUnitEventsListener, Mover{
         _listeners.remove(listener);
 
     }
+    private static boolean compareVector2f(Vector2f vec1, Vector2f vec2) { return (vec1.x==vec2.x&&vec1.y==vec2.y);}
 }

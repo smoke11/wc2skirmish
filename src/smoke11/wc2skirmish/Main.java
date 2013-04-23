@@ -46,6 +46,7 @@ public class Main extends StateBasedGame {
             container.setTargetFrameRate(60);
             container.setDisplayMode(1400,900,false);
             container.start();
+            //After this, Main class get to first state (InitializeState), and from there that state will go one to next one when needed
         } catch (SlickException e) {
             e.printStackTrace();
         }

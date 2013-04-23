@@ -87,23 +87,18 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
         if(button==0)
             actions.add(IWorldEventsListener.possibleActions.WORLD_SELECTUNIT.name());
         else if(button==1)
-            actions.add(IUnitEventsListener.possibleActions.UNIT_MOVE.name());
+            actions.add(IWorldEventsListener.possibleActions.WORLD_MOVEUNIT.name());
     }
     //////////////
     //Events
     //////////////
-    @Override
-    public void UnitsSelectedEvent(ArrayList<Unit> units) {
-        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"ParseInput","Getting selected units from GameState");
-        selectedUnits=units;
-    }
 
     private static void fireEvent(ArrayList<String> actions, int delta)
     {
         for (String action : actions)
         {
             String[] split=action.split("_");
-            if(split[0].contains("WORLD"))  //TODO: SOMETHING WRONG IS HERE!
+            if(split[0].contains("WORLD"))
                 fireWorldEvent(action,delta);
             else if(split[0].contains("CAMERA"))
                 fireCameraEvent(action, delta);
@@ -120,15 +115,20 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
     }
     private static void fireUnitEvent(String action, int delta)
     {
-        if(action.equalsIgnoreCase(IUnitEventsListener.possibleActions.UNIT_MOVE.name()))
-            for (Unit unit : selectedUnits)
-                unit.MoveUnitEvent(new UnitEvent(action,delta,unit, new Vector2f(mouseRect[0],mouseRect[1])));
     }
     private static void fireWorldEvent(String action, int delta)
     {
         if(action.equalsIgnoreCase(IWorldEventsListener.possibleActions.WORLD_SELECTUNIT.name()))
             for (IWorldEventsListener listener : _worldListeners)
                 listener.SelectUnitEvent(new WorldEvent(action,delta,mouseRect));
+        else
+            for (IWorldEventsListener listener : _worldListeners)
+                listener.MoveUnitEvent(new WorldEvent(action,delta,mouseRect));
+    }
+    @Override
+    public void UnitsSelectedEvent(ArrayList<Unit> units) {
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"ParseInput","Getting selected units from GameState");
+        selectedUnits=units;
     }
     public static synchronized void addEventListener(EventListener listener)  {
         _listeners.add(listener);

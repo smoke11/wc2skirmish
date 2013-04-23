@@ -1,6 +1,9 @@
 package smoke11.wc2skirmish.units;
 
 import org.newdawn.slick.geom.Vector2f;
+import org.newdawn.slick.util.pathfinding.Mover;
+import org.newdawn.slick.util.pathfinding.Path;
+import smoke11.DebugView;
 import smoke11.wc2skirmish.events.*;
 
 import java.util.ArrayList;
@@ -14,7 +17,7 @@ import java.util.List;
  * Time: 16:16
  * To change this template use File | Settings | File Templates.
  */
-public class Unit implements IUnitEventsListener {
+public class Unit implements IUnitEventsListener, Mover{
     private static ArrayList<IUnitUpdatesEventsListener> _listeners = new ArrayList(); //all listeners that is needed to be informed that unit do something
     public static enum Types{
         MELEE,
@@ -33,6 +36,11 @@ public class Unit implements IUnitEventsListener {
     protected int range;
     protected int sight;
     protected int speed;
+
+    public Types getType() {
+        return type;
+    }
+
     protected Types type;
     protected String race;
     protected int faction;
@@ -44,7 +52,8 @@ public class Unit implements IUnitEventsListener {
         return new Vector2f(position.x/32,position.y/32);
     }
     protected Vector2f position;
-    protected Vector2f destination; //its for moving or attacking
+    protected Path destination; //its for moving or attacking
+    protected int destIndex;
     protected Unit()
     {}
     protected Unit(String nameOfUnit, int id, int health, int mana, int level, int armor, Vector2f damage, int range, int sight, int speed,Types type, String race, int faction, Vector2f postion)
@@ -78,18 +87,31 @@ public class Unit implements IUnitEventsListener {
     public void Update(int delta)
     {
         if(destination!=null)//if there is destination, then move unit to it
-        {}
+            MoveUnit(delta);
     }
     @Override
     public void MoveUnitEvent(UnitEvent e) {
-        destination = e.destinationVector;
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","Moving event, preparing to move.");
+        destIndex=0;
+        destination = e.destinationPath;
 
     }
     private void MoveUnit(int delta)
     {
-        //TODO: http://stackoverflow.com/questions/9742039/a-pathfinding-java-slick2d-library
+        Vector2f oldPos;
+        if(destIndex<destination.getLength())
+        {
+            oldPos=position;
+        int x = destination.getStep(destIndex).getX();
+        int y = destination.getStep(destIndex).getY();
+        position = new Vector2f(x*32,y*32);
+        destIndex++;
+
         for (IUnitUpdatesEventsListener listener : _listeners)
-            listener.UnitMovedEvent(new UnitUpdatesEvent(IUnitUpdatesEventsListener.possibleActions.UNIT_MOVED.name(),this,position,destination));
+            listener.UnitMovedEvent(new UnitUpdatesEvent(IUnitUpdatesEventsListener.possibleActions.UNIT_MOVED.name(),this,oldPos,this.position));
+        }
+        else
+            destination=null;
     }
 
     public static synchronized void addEventListener(IUnitUpdatesEventsListener listener)  {

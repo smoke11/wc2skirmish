@@ -5,6 +5,7 @@ import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.*;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 import smoke11.DebugView;
 import smoke11.wc2skirmish.events.*;
 import smoke11.wc2skirmish.units.Unit;
@@ -19,6 +20,8 @@ import java.util.HashMap;
 public class GameState extends BasicGameState implements ICameraEventsListener, IWorldEventsListener, IUnitUpdatesEventsListener{
     private static final int id = 2;
     private static ParseInput parseInput;
+    private static Terrain terrain;
+    private static AStarPathFinder pathFinder;
     /////////
     //units - all lists should be updated when something happens, its job for
     private static ArrayList<Unit> allunitsList;  //no grouping
@@ -27,14 +30,14 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     /////////
     /////////
     //for rendering
-    private static Tile[][] mapTiles;
+
     private static HashMap<String, SpriteSheet> terrainSpriteSheets;
     private static HashMap<String, Image[]> terrainSpriteTiles;
     private static HashMap<String, SpriteSheet> unitSpriteSheets;
     private static HashMap<String, HashMap<String,Image>> unitSpriteTiles;
 
     private static Vector2f cameraOffset = new Vector2f(0,0);
-    private static Vector2f mapBounds = new Vector2f(0,0);
+
     private static Vector2f screenRes = new Vector2f(0,0);
     /////////
 
@@ -48,8 +51,8 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         parseInput = new ParseInput();
         Unit.addEventListener(this);
         screenRes = new Vector2f(gameContainer.getScreenWidth(),gameContainer.getScreenHeight());
-        mapTiles = InitializeState.getMapTiles();
-        mapBounds = new Vector2f(mapTiles.length*32,mapTiles[0].length*32);
+        terrain = new Terrain(InitializeState.getMapTiles());
+        pathFinder = new AStarPathFinder(terrain,99999,false);
         ArrayList<Tile>[][] unitTiles = InitializeState.getUnitTiles();
         terrainSpriteSheets = InitializeState.getTerrainSpriteSheets();
         terrainSpriteTiles =InitializeState.getTerrainSpriteTiles();
@@ -91,9 +94,10 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         //render terrain
         String terrainname= "summertiles";
         terrainSpriteSheets.get(terrainname).startUse();
-        for (int x=0; x<mapTiles.length;x++)
-            for (int y=0; y<mapTiles[0].length;y++)
-                terrainSpriteTiles.get(terrainname)[mapTiles[x][y].ID].drawEmbedded(x*32-cameraOffset.x,y*32-cameraOffset.y);
+        Tile[][] terrainTiles = terrain.getMapTiles();
+        for (int x=0; x<terrainTiles.length;x++)
+            for (int y=0; y<terrainTiles[0].length;y++)
+                terrainSpriteTiles.get(terrainname)[terrainTiles[x][y].ID].drawEmbedded(x*32-cameraOffset.x,y*32-cameraOffset.y);
         terrainSpriteSheets.get(terrainname).endUse();
         //render units (buildings are units too!)
         String ssname;
@@ -139,20 +143,20 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
             if(cameraOffset.y-delta>0)
                 cameraOffset.y-=delta;
         if(whichSide.contains(ICameraEventsListener.possibleActions.CAMERA_DOWN.name()))
-            if(cameraOffset.y+delta<mapBounds.y-screenRes.y)
+            if(cameraOffset.y+delta<terrain.getMapBounds().y-screenRes.y)
                 cameraOffset.y+=delta;
         if(whichSide.contains(ICameraEventsListener.possibleActions.CAMERA_LEFT.name()))
             if(cameraOffset.x-delta>0)
                 cameraOffset.x-=delta;
         if(whichSide.contains(ICameraEventsListener.possibleActions.CAMERA_RIGHT.name()))
-            if(cameraOffset.x+delta<mapBounds.x-screenRes.x)
+            if(cameraOffset.x+delta<terrain.getMapBounds().x-screenRes.x)
                 cameraOffset.x+=delta;
     }
 
     //getting from ParseInput class how area was selected by mouse, getting units that are inside it and return list of units to ParseInput class
     @Override
     public void SelectUnitEvent(WorldEvent e) {
-        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Getting mouse selection from ParseInput and passing selected units to ParseInput");
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Selecting unit(s)");
         selectedUnits = new ArrayList<Unit>();
         if(e.selectRect.length==2) //selecting only one unit, by mouse click
             for (Unit unit : allUnitsByCoord[e.selectRect[0]/32][e.selectRect[1]/32])
@@ -160,6 +164,15 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Selected "+selectedUnits.size()+" units.");
         parseInput.UnitsSelectedEvent(selectedUnits);
     }
+
+    @Override
+    public void MoveUnitEvent(WorldEvent e) {
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Selecting units.");
+        for (Unit unit : selectedUnits)
+            unit.MoveUnitEvent(new UnitEvent(Unit.possibleActions.UNIT_MOVE.name(),0,unit,pathFinder.findPath(unit,(int)unit.getTilePosition().x,(int)unit.getTilePosition().y,e.selectRect[0]/32,e.selectRect[1]/32)));
+    }
+
+
     //////////////
     //Mouse Input
     //////////////

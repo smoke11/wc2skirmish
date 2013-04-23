@@ -1,6 +1,7 @@
 package smoke11.wc2skirmish.events;
 
 import org.newdawn.slick.geom.Vector2f;
+import org.newdawn.slick.util.pathfinding.Path;
 import smoke11.wc2skirmish.units.Unit;
 
 /**
@@ -13,15 +14,15 @@ import smoke11.wc2skirmish.units.Unit;
 public class UnitEvent extends GeneralEvent {
     public Unit sourceUnit;
     public Unit targetUnit;
-    public Vector2f destinationVector;
+    public Path destinationPath;
     public UnitEvent(String action, int delta, Unit sourceUnit) {
         super(action,delta);
         this.sourceUnit=sourceUnit;
     }
-    public UnitEvent(String action, int delta, Unit sourceUnit, Vector2f move)
+    public UnitEvent(String action, int delta, Unit sourceUnit, Path destinationPath)
     {
         super(action, delta);
         this.sourceUnit=sourceUnit;
-        destinationVector =move;
+        this.destinationPath =destinationPath;
     }
 }

@@ -1,10 +1,10 @@
 package smoke11.wc2skirmish.units;
 
-import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.util.pathfinding.Mover;
 import org.newdawn.slick.util.pathfinding.Path;
 import smoke11.DebugView;
 import smoke11.wc2skirmish.events.*;
+import smoke11.wc2utils.Vector2;
 
 import java.util.ArrayList;
 
@@ -30,7 +30,7 @@ public class Unit implements IUnitEventsListener, Mover{
     protected int mana;
     protected int level;
     protected int armor;
-    protected Vector2f damage; //from min to max
+    protected Vector2 damage; //from min to max
     protected int range;
     protected int sight;
     protected int speed;
@@ -43,27 +43,27 @@ public class Unit implements IUnitEventsListener, Mover{
     protected String race;
     protected int faction;
 
-    public Vector2f getPosition() {
+    public Vector2 getPosition() {
         return position;
     }
-    public Vector2f getTilePosition() {
-        return new Vector2f((int)position.x/32,(int)position.y/32);
+    public Vector2 getTilePosition() {
+        return new Vector2((int)position.x/32,(int)position.y/32);
     }
-    public Vector2f getLastTilePosition() {
-        return new Vector2f((int)lastPosition.x/32,(int)lastPosition.y/32);
+    public Vector2 getLastTilePosition() {
+        return new Vector2((int)lastPosition.x/32,(int)lastPosition.y/32);
     }
-    public Vector2f getdestinationTileVector()
+    public Vector2 getdestinationTileVector()
     {
-        return new Vector2f((int)destinationVector.x/32,(int)destinationVector.y/32);
+        return new Vector2((int)destinationVector.x/32,(int)destinationVector.y/32);
     }
-    protected Vector2f position;
-    protected Vector2f lastPosition;
-    protected Vector2f destinationVector; //next step in destinationPath
+    protected Vector2 position;
+    protected Vector2 lastPosition;
+    protected Vector2 destinationVector; //next step in destinationPath
     protected Path destinationPath; //its for moving or attacking
     protected int destIndex;
     protected Unit()
     {}
-    protected Unit(String nameOfUnit, int id, int health, int mana, int level, int armor, Vector2f damage, int range, int sight, int speed,Types type, String race, int faction, Vector2f postion)
+    protected Unit(String nameOfUnit, int id, int health, int mana, int level, int armor, Vector2 damage, int range, int sight, int speed,Types type, String race, int faction, Vector2 postion)
     {
         this.nameOfUnit =nameOfUnit;
         this.health=health;
@@ -79,7 +79,7 @@ public class Unit implements IUnitEventsListener, Mover{
         this.faction=faction;
         this.position=position;
     }
-/*    private static Unit createUnit(String nameOfUnit, int id, int health, int mana, int level, int armor, Vector2f damage, int range, int sight, int speed,Types type, String race, int faction, Vector2f position)
+/*    private static Unit createUnit(String nameOfUnit, int id, int health, int mana, int level, int armor, Vector2 damage, int range, int sight, int speed,Types type, String race, int faction, Vector2 position)
     {
         return new Unit(nameOfUnit, id, health, mana, level, armor, damage, range, sight, speed,type, race, faction, position);
     }*/
@@ -101,37 +101,53 @@ public class Unit implements IUnitEventsListener, Mover{
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","Moving event, preparing to move.");
         destIndex=1;
         destinationPath = e.destinationPath;
-        destinationVector=position.copy();
+        destinationVector=new Vector2(position);
+
+    }
+    private void getNextStep()
+    {
 
     }
     private void MoveUnit(int delta)
     {
 
-        if(destIndex< destinationPath.getLength())  //if unit isn`t in destination point (if it exist), get next one
-        {
-            lastPosition=position.copy();
-            Vector2f dest = getdestinationTileVector();
-            Vector2f pos = getTilePosition();
-            if(compareVector2f(getdestinationTileVector(),getTilePosition())) //because unit 'moving' at one tile at time, if unit reach destination tile it is needed to get next one on path
+            DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: next iteration");
+            lastPosition=new Vector2(position);
+            DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: position: "+getLastTilePosition()+lastPosition);
+            if(getdestinationTileVector().compareVector2f(getTilePosition())) //because unit 'moving' at one tile at time, if unit reach destination tile it is needed to get next one on path
             {
-                int x = destinationPath.getStep(destIndex).getX();
-                int y = destinationPath.getStep(destIndex).getY();
-                destinationVector = new Vector2f(x*32,y*32);
-                destIndex++;
+                if(destIndex<destinationPath.getLength())
+                {
+                    int x = destinationPath.getStep(destIndex).getX();
+                    int y = destinationPath.getStep(destIndex).getY();
+                    destinationVector = new Vector2(x*32,y*32);
+                    DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: Getting new step: "+getdestinationTileVector());
+                    destIndex++;
+                }
+                else
+                {
+                    destinationPath =null;
+                    DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: Destination reached.");
+                    return;
+                }
+
             }
-            Vector2f sub = destinationVector.copy();  //TODO: move from slick Vector2f class to some Vector2 class (for int), to much work with this class
+            Vector2 sub = new Vector2(destinationVector);
+            DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: sub: "+sub);
             sub.sub(position);
-            Vector2f norm = sub.copy().normalise();
-            Vector2f moveVec = new Vector2f((delta/17f)*speed*norm.x,(delta/17f)*speed*norm.y);
+            Vector2 norm = new Vector2(sub);
+            norm.normalize();
+            Vector2 moveVec = new Vector2((delta/34f)*speed*norm.x,(delta/34f)*speed*norm.y); //for 60 fps, delta ==17
+            DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: moveVec: "+moveVec);
             position.add(moveVec);
-            Vector2f lastpos=getLastTilePosition();
-            pos = getTilePosition();
+            DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: new postion: "+getTilePosition()+position);
+            Vector2 lastpos=getLastTilePosition();
+            Vector2 pos = getTilePosition();
         for (IUnitUpdatesEventsListener listener : _listeners)
             listener.UnitMovedEvent(new UnitUpdatesEvent(IUnitUpdatesEventsListener.possibleActions.UNIT_MOVED.name(),this,lastpos,pos));
         }
-        else
-            destinationPath =null;
-    }
+
+
 
     public static synchronized void addEventListener(IUnitUpdatesEventsListener listener)  {
         _listeners.add(listener);
@@ -141,5 +157,4 @@ public class Unit implements IUnitEventsListener, Mover{
         _listeners.remove(listener);
 
     }
-    private static boolean compareVector2f(Vector2f vec1, Vector2f vec2) { return (vec1.x==vec2.x&&vec1.y==vec2.y);}
 }

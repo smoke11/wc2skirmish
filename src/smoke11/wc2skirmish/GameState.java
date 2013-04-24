@@ -1,5 +1,6 @@
 package smoke11.wc2skirmish;
 
+import org.lwjgl.util.vector.Vector4f;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.*;
@@ -11,6 +12,7 @@ import smoke11.wc2skirmish.events.*;
 import smoke11.wc2skirmish.units.Unit;
 import smoke11.wc2skirmish.units.UnitFactory;
 import smoke11.wc2utils.Tile;
+import smoke11.wc2utils.Vector2;
 
 
 import java.util.ArrayList;
@@ -25,6 +27,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     private static ParseInput parseInput;
     private static Terrain terrain;
     private static AStarPathFinder pathFinder;
+
     /////////
     //units - all lists should be updated when something happens, its job for events
     private static ArrayList<Unit> allunitsList;  //no grouping
@@ -34,17 +37,20 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     /////////
     /////////
     //for rendering
-
+    private static boolean drawingGrid = true;
     private static HashMap<String, SpriteSheet> terrainSpriteSheets;
     private static HashMap<String, Image[]> terrainSpriteTiles;
     private static HashMap<String, SpriteSheet> unitSpriteSheets;
     private static HashMap<String, HashMap<String,Image>> unitSpriteTiles;
 
-    private static Vector2f cameraOffset = new Vector2f(0,0);
+    private static Vector2 cameraOffset = new Vector2(0,0);
 
-    private static Vector2f screenRes = new Vector2f(0,0);
-    /////////
+    private static Vector2 screenRes = new Vector2(0,0);
 
+    public static Rectangle getScreenRect()//for getting rectangle of visibly, to reduce drawing
+    {return new Rectangle(cameraOffset.x, cameraOffset.y,screenRes.x,screenRes.y);}
+    public static Rectangle getScreenTileRect()//for getting rectangle of visibly tiles to reduce drawing
+    {return new Rectangle(cameraOffset.x/32, cameraOffset.y/32,screenRes.x/32,screenRes.y/32);}
     public int getID() {
         return id;
     }
@@ -57,7 +63,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
 
         gameContainer.setMinimumLogicUpdateInterval(17);
         gameContainer.setMaximumLogicUpdateInterval(18);
-        screenRes = new Vector2f(gameContainer.getScreenWidth(),gameContainer.getScreenHeight());
+        screenRes = new Vector2(gameContainer.getScreenWidth(),gameContainer.getScreenHeight());
         terrain = new Terrain(InitializeState.getMapTiles());
         pathFinder = new AStarPathFinder(terrain,99999,false);
         ArrayList<Tile>[][] unitTiles = InitializeState.getUnitTiles();
@@ -99,7 +105,9 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     /////////////////
     @Override
     public void render(GameContainer gameContainer, StateBasedGame stateBasedGame, Graphics graphics) throws SlickException {
-        //render terrain
+
+        //render terrain  TODO: draw all the things only on screen rect
+        Rectangle screenRectangleTiles = getScreenTileRect();
         String terrainname= "summertiles";
         terrainSpriteSheets.get(terrainname).startUse();
         Tile[][] terrainTiles = terrain.getMapTiles();
@@ -107,6 +115,13 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
             for (int y=0; y<terrainTiles[0].length;y++)
                 terrainSpriteTiles.get(terrainname)[terrainTiles[x][y].ID].drawEmbedded(x*32-cameraOffset.x,y*32-cameraOffset.y);
         terrainSpriteSheets.get(terrainname).endUse();
+        //render grid
+        if(drawingGrid)
+        {
+            for (int x=(int)screenRectangleTiles.getMinX();x<(int)screenRectangleTiles.getMaxX();x++)
+                for (int y=(int)screenRectangleTiles.getMinY();y<(int)screenRectangleTiles.getMaxY();y++)
+                    graphics.drawRect(x*32-cameraOffset.x,y*32-cameraOffset.y,32,32);
+        }
         //render units (buildings are units too!)
         String ssname;
         for (Unit unit : allunitsList)

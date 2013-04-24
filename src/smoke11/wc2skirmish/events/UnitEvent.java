@@ -1,6 +1,5 @@
 package smoke11.wc2skirmish.events;
 
-import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.util.pathfinding.Path;
 import smoke11.wc2skirmish.units.Unit;
 

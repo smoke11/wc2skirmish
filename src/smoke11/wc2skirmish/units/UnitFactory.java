@@ -1,6 +1,7 @@
 package smoke11.wc2skirmish.units;
 
 import org.newdawn.slick.geom.Vector2f;
+import smoke11.wc2utils.Vector2;
 
 /**
  * Created with IntelliJ IDEA.
@@ -38,7 +39,7 @@ class Peon extends Unit {
         this.mana = 0;
         this.level = 1;
         this.armor=1;
-        this.damage = new Vector2f(1,5);
+        this.damage = new Vector2(1,5);
         this.range = 1;
         this.sight = 4;
         this.speed = 10;
@@ -46,7 +47,7 @@ class Peon extends Unit {
         this.race = "Orc";
         this.id = id;
         this.faction = faction;
-        this.position = new Vector2f(tilePosition.x*32,tilePosition.y*32);
+        this.position = new Vector2(tilePosition.x*32,tilePosition.y*32);
 
     }
 
@@ -62,7 +63,7 @@ class Peasant extends Unit {
         this.mana = 0;
         this.level = 1;
         this.armor=1;
-        this.damage = new Vector2f(1,5);
+        this.damage = new Vector2(1,5);
         this.range = 1;
         this.sight = 4;
         this.speed = 10;
@@ -70,7 +71,7 @@ class Peasant extends Unit {
         this.race = "Human";
         this.id = id;
         this.faction = faction;
-        this.position = new Vector2f(tilePosition.x*32,tilePosition.y*32);
+        this.position = new Vector2(tilePosition.x*32,tilePosition.y*32);
 
     }
 

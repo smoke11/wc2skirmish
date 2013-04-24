@@ -1,7 +1,7 @@
 package smoke11.wc2skirmish.events;
 
-import org.newdawn.slick.geom.Vector2f;
 import smoke11.wc2skirmish.units.Unit;
+import smoke11.wc2utils.Vector2;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,9 +13,9 @@ import smoke11.wc2skirmish.units.Unit;
 public class UnitUpdatesEvent extends GeneralEvent {
     public Unit sourceUnit;
     public Unit targetUnit;
-    public Vector2f startingVector;
-    public Vector2f destinationVector;
-    public UnitUpdatesEvent(String action, Unit sourceUnit, Vector2f startingTileVector, Vector2f destinationTileVector)
+    public Vector2 startingVector;
+    public Vector2 destinationVector;
+    public UnitUpdatesEvent(String action, Unit sourceUnit, Vector2 startingTileVector, Vector2 destinationTileVector)
     {
         super(action, -1);
         this.sourceUnit=sourceUnit;

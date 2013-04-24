@@ -3,7 +3,7 @@ package smoke11.wc2skirmish;
 
 import org.newdawn.slick.Input;
 import org.newdawn.slick.MouseListener;
-import org.newdawn.slick.geom.Vector2f;
+
 import smoke11.DebugView;
 import smoke11.wc2skirmish.events.*;
 import smoke11.wc2skirmish.units.Unit;
@@ -34,7 +34,8 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
         CAMERA_UP(Input.KEY_UP),
         CAMERA_DOWN(Input.KEY_DOWN),
         CAMERA_LEFT(Input.KEY_LEFT),
-        CAMERA_RIGHT(Input.KEY_RIGHT);
+        CAMERA_RIGHT(Input.KEY_RIGHT),
+        GODEBUG(Input.KEY_1); // i will setdebug flag on this action
 
 
         private final int index;
@@ -104,6 +105,8 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
                 fireCameraEvent(action, delta);
             else if(split[0].contains("UNIT"))
                 fireUnitEvent(action,delta);
+            else if(split[0].contains("GODEBUG"))
+                continue;
         }
         actions.removeAll(actions);
     }

@@ -1,10 +1,10 @@
 package smoke11.wc2skirmish;
 
-import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.util.pathfinding.PathFindingContext;
 import org.newdawn.slick.util.pathfinding.TileBasedMap;
 import smoke11.wc2skirmish.units.Unit;
 import smoke11.wc2utils.Tile;
+import smoke11.wc2utils.Vector2;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +15,7 @@ import smoke11.wc2utils.Tile;
  */
 public class Terrain implements TileBasedMap {
     private Tile[][] mapTiles;
-    private Vector2f mapBounds = new Vector2f(0,0);
+    private Vector2 mapBounds = new Vector2(0,0);
     private static String[] land_blocking_Elements = new String[] { "water","forest","wall","mountains"};
     private static String[] water_blocking_Elements = new String[]{ "coast", "ground", "forest", "mountains","wall"};
 
@@ -23,13 +23,13 @@ public class Terrain implements TileBasedMap {
     public Terrain(Tile[][] terrainTiles)
     {
         mapTiles=terrainTiles;
-        mapBounds = new Vector2f(mapTiles.length*32,mapTiles[0].length*32);
+        mapBounds = new Vector2(mapTiles.length*32,mapTiles[0].length*32);
     }
     public Tile[][] getMapTiles() {
         return mapTiles;
     }
 
-    public Vector2f getMapBounds() {
+    public Vector2 getMapBounds() {
         return mapBounds;
     }
 

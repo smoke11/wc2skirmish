@@ -35,6 +35,7 @@ public class Unit implements IUnitEventsListener, Mover{
     protected int range;
     protected int sight;
     protected int speed;
+    protected Vector2 Size;
 
     public Types getType() {
         return type;
@@ -57,10 +58,6 @@ public class Unit implements IUnitEventsListener, Mover{
     {
         return new Vector2((int)destinationVector.x/32,(int)destinationVector.y/32);
     }
-    public Vector2 getCenterPosition()   //todo: calculate this based on size of unit instead on static 32
-    {
-        return new Vector2((int)position.x+16,(int)position.y+16);
-    }  //TODO: There is problem with moveing, 1. unit postition is getting from left top instead center and destination vector the same
 
 
     protected Vector2 position;
@@ -69,7 +66,9 @@ public class Unit implements IUnitEventsListener, Mover{
     protected Path destinationPath; //its for moving or attacking
     protected int destIndex;
     protected Unit()
-    {}
+    {
+        this.Size = new Vector2(32,32); //TODO: initialize proper sizes for units
+    }
     protected Unit(String nameOfUnit, int id, int health, int mana, int level, int armor, Vector2 damage, int range, int sight, int speed,Types type, String race, int faction, Vector2 postion)
     {
         this.nameOfUnit =nameOfUnit;
@@ -116,12 +115,45 @@ public class Unit implements IUnitEventsListener, Mover{
     {
 
     }
+    //this method is make sure that unit will not go too far. if unit exceed dest point moveunit method must lower moveVect to value
+    private boolean checkIfNextMoveExceedDestPoint(Vector2 destination, Vector2 moveVect, Vector2 norm)//norm is determining side (0..3) (up,right,down,left)
+    {
+        Vector2 testPos = new Vector2(position);
+        testPos.add(moveVect);
+        int side=0;
+        if(norm.x>0)
+            side=1;
+        else if(norm.y>0)
+            side=2;
+        else if(norm.x<0)
+            side=3;
+        switch (side)
+        {
+            case 0:
+                if(testPos.y<destination.y)
+                    return true;
+                return false;
+            case 1:
+                if(testPos.x>destination.x)
+                    return true;
+                return false;
+            case 2:
+                if(testPos.y>destination.y)
+                    return true;
+                return false;
+            case 3:
+                if(testPos.x<destination.x)
+                    return true;
+                return false;
+        }
+        return true;
+    }
     private void MoveUnit(int delta)
     {
             DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: next iteration");
             lastPosition=new Vector2(position);
             DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: position: "+getLastTilePosition()+lastPosition);
-            if(getdestinationTileVector().compareVector2f(getTilePosition())) //because unit 'moving' at one tile at time, if unit reach destination tile it is needed to get next one on path
+            if(destinationVector.compareVector2(lastPosition)) //because unit 'moving' at one tile at time, if unit reach destination tile it is needed to get next one on path
             {
                 if(destIndex<destinationPath.getLength())
                 {
@@ -139,7 +171,7 @@ public class Unit implements IUnitEventsListener, Mover{
                 }
 
             }
-            Vector2 sub = new Vector2(destinationVector);
+            Vector2 sub = new Vector2(destinationVector);  //TODO: add static methods for sub and add for vector 2 and use it
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: destination (next step): "+getdestinationTileVector()+ destinationVector);
             sub.sub(position);
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: sub: "+sub);
@@ -147,7 +179,8 @@ public class Unit implements IUnitEventsListener, Mover{
             norm.normalize();
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: norm: "+norm);
             Vector2 moveVec = new Vector2((delta/34f)*speed*norm.x,(delta/34f)*speed*norm.y); //for 60 fps, delta ==17
-
+            if(checkIfNextMoveExceedDestPoint(destinationVector, moveVec, norm))      //this method is make sure that unit will not go too far. if unit exceed dest point moveunit method must lower moveVect to value
+                moveVec= new Vector2(destinationVector.x-position.x,destinationVector.y-position.y);
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: moveVec: "+moveVec);
             position.add(moveVec);
             DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: new postion: "+getTilePosition()+position);

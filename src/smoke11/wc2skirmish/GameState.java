@@ -221,8 +221,8 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     public void UnitMovedEvent(UnitUpdatesEvent e) { //update postion of unit in array sorted by coordinats
         if(e.startingVector!=null&&e.destinationVector!=null)
         {
-        allUnitsByCoord[(int)e.startingVector.x][(int)e.startingVector.y].remove(e.sourceUnit);
-        allUnitsByCoord[(int)e.destinationVector.x][(int)e.destinationVector.y].add(e.sourceUnit);
+            allUnitsByCoord[(int)e.startingVector.x][(int)e.startingVector.y].remove(e.sourceUnit);
+            allUnitsByCoord[(int)e.destinationVector.x][(int)e.destinationVector.y].add(e.sourceUnit);
         }
     }
 }

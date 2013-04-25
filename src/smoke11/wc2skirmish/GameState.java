@@ -48,6 +48,8 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     private static Vector2 cameraOffset = new Vector2(0,0);
 
     private static Vector2 screenRes = new Vector2(0,0);
+    private static float alpha=0f;
+    /////////
 
     public static Rectangle getScreenRect()//for getting rectangle of visibly, to reduce drawing
     {return new Rectangle(cameraOffset.x, cameraOffset.y,screenRes.x,screenRes.y);}
@@ -146,28 +148,32 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
 
     @Override
     public void update(GameContainer gameContainer, StateBasedGame stateBasedGame, int i) throws SlickException {
-
+        pause_resumeGameIfFocusChanged(gameContainer,gameContainer.getGraphics());
         ParseInput.InputUpdate(gameContainer.getInput(), i);
-
         for (Unit unit: unitsNeededToBeUpdated)
             if(!unit.Update(i)) //if there is no need in updateing unit (return false) remove it from updatelist
                 unitsToRemoveFromUpdateList.add(unit);
         unitsNeededToBeUpdated.removeAll(unitsToRemoveFromUpdateList);
         unitsToRemoveFromUpdateList.clear();
-        pause_resumeGameIfFocusChanged(gameContainer);
 
     }
-    public void pause_resumeGameIfFocusChanged(GameContainer gameContainer)//when player alt tab or smthing similar game pauses, if get back to game, game will run again
+    public void pause_resumeGameIfFocusChanged(GameContainer gameContainer, Graphics gr)//when player alt tab or smthing similar game pauses, if get back to game, game will run again
     {
          if(!gameContainer.hasFocus())
-            gameContainer.pause();
-         else if(gameContainer.isPaused())
          {
-             gameContainer.resume();
-             gameContainer.setMinimumLogicUpdateInterval(17); //it`s needed to set it again
-             gameContainer.setMaximumLogicUpdateInterval(18);
+             Rectangle rect = new Rectangle (0, 0, screenRes.x, screenRes.y);
+             gr.setColor(new Color (0.2f, 0.2f, 0.2f));
+             gr.fill(rect);
+             gameContainer.pause();
+             this.pauseUpdate();
+             this.pauseRender();
          }
+         else if(gameContainer.isPaused())
+             gameContainer.resume();
+             this.unpauseUpdate();
+            this.unpauseRender();
     }
+
     //////////////////
     //Events
     //////////////////

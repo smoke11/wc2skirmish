@@ -35,7 +35,7 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
         CAMERA_DOWN(Input.KEY_DOWN),
         CAMERA_LEFT(Input.KEY_LEFT),
         CAMERA_RIGHT(Input.KEY_RIGHT),
-        GODEBUG(Input.KEY_1); // i will setdebug flag on this action
+        CODEBUG(Input.KEY_1); // i will setdebug flag on this action
 
 
         private final int index;
@@ -83,6 +83,7 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
 
     @Override
     public void mouseClicked(int button, int x, int y, int clickCount) {
+
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"ParseInput","Mouse clicked: "+x+","+y);
         mouseRect = new int[]{x,y};
         if(button==0)
@@ -105,7 +106,7 @@ public class ParseInput implements ISelectedUnitsEventListener, IGameState_Mouse
                 fireCameraEvent(action, delta);
             else if(split[0].contains("UNIT"))
                 fireUnitEvent(action,delta);
-            else if(split[0].contains("GODEBUG"))
+            else if(split[0].contains("CODEBUG"))
                 continue;
         }
         actions.removeAll(actions);

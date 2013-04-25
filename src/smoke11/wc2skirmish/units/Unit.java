@@ -3,6 +3,7 @@ package smoke11.wc2skirmish.units;
 import org.newdawn.slick.util.pathfinding.Mover;
 import org.newdawn.slick.util.pathfinding.Path;
 import smoke11.DebugView;
+import smoke11.wc2skirmish.SlickUtilities;
 import smoke11.wc2skirmish.events.*;
 import smoke11.wc2utils.Vector2;
 
@@ -56,6 +57,12 @@ public class Unit implements IUnitEventsListener, Mover{
     {
         return new Vector2((int)destinationVector.x/32,(int)destinationVector.y/32);
     }
+    public Vector2 getCenterPosition()   //todo: calculate this based on size of unit instead on static 32
+    {
+        return new Vector2((int)position.x+16,(int)position.y+16);
+    }  //TODO: There is problem with moveing, 1. unit postition is getting from left top instead center and destination vector the same
+
+
     protected Vector2 position;
     protected Vector2 lastPosition;
     protected Vector2 destinationVector; //next step in destinationPath
@@ -101,6 +108,7 @@ public class Unit implements IUnitEventsListener, Mover{
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","Moving event, preparing to move.");
         destIndex=1;
         destinationPath = e.destinationPath;
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","Destination path:"+ SlickUtilities.DestinationPathToString(destinationPath));
         destinationVector=new Vector2(position);
 
     }
@@ -110,7 +118,6 @@ public class Unit implements IUnitEventsListener, Mover{
     }
     private void MoveUnit(int delta)
     {
-
             DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: next iteration");
             lastPosition=new Vector2(position);
             DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: position: "+getLastTilePosition()+lastPosition);
@@ -124,7 +131,7 @@ public class Unit implements IUnitEventsListener, Mover{
                     DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: Getting new step: "+getdestinationTileVector());
                     destIndex++;
                 }
-                else
+                else  //if there is no next step, end
                 {
                     destinationPath =null;
                     DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: Destination reached.");
@@ -133,12 +140,15 @@ public class Unit implements IUnitEventsListener, Mover{
 
             }
             Vector2 sub = new Vector2(destinationVector);
-            DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: sub: "+sub);
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: destination (next step): "+getdestinationTileVector()+ destinationVector);
             sub.sub(position);
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: sub: "+sub);
             Vector2 norm = new Vector2(sub);
             norm.normalize();
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: norm: "+norm);
             Vector2 moveVec = new Vector2((delta/34f)*speed*norm.x,(delta/34f)*speed*norm.y); //for 60 fps, delta ==17
-            DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: moveVec: "+moveVec);
+
+        DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: moveVec: "+moveVec);
             position.add(moveVec);
             DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"Unit","[Moving]: new postion: "+getTilePosition()+position);
             Vector2 lastpos=getLastTilePosition();

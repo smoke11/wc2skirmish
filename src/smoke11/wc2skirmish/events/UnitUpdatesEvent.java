@@ -13,13 +13,9 @@ import smoke11.wc2utils.Vector2;
 public class UnitUpdatesEvent extends GeneralEvent {
     public Unit sourceUnit;
     public Unit targetUnit;
-    public Vector2 startingVector;
-    public Vector2 destinationVector;
-    public UnitUpdatesEvent(String action, Unit sourceUnit, Vector2 startingTileVector, Vector2 destinationTileVector)
+    public UnitUpdatesEvent(String action, Unit sourceUnit)
     {
         super(action, -1);
         this.sourceUnit=sourceUnit;
-        this.startingVector=startingVector;
-        this.destinationVector=destinationVector;
     }
 }

@@ -7,6 +7,7 @@ import org.newdawn.slick.*;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.pathfinding.AStarPathFinder;
+import org.newdawn.slick.util.pathfinding.Path;
 import smoke11.DebugView;
 import smoke11.wc2skirmish.events.*;
 import smoke11.wc2skirmish.units.Unit;
@@ -30,15 +31,16 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
 
     /////////
     //units - all lists should be updated when something happens, its job for events
-    private static ArrayList<Unit> allunitsList;  //no grouping
+    private final static ArrayList<Unit> allunitsList = new ArrayList<Unit>();  //no grouping
     private static ArrayList<Unit>[][] allUnitsByCoord;
-    private static ArrayList<Unit> selectedUnits; //only selected (by player) units
-    private static ArrayList<Unit> unitsNeededToBeUpdated; //for making less references
+    private final static ArrayList<Unit> selectedUnits = new ArrayList<Unit>(); //only selected (by player) units
+    private final static ArrayList<Unit> unitsNeededToBeUpdated = new ArrayList<Unit>(); //for making less references
+    private final static ArrayList<Unit> unitsToRemoveFromUpdateList = new ArrayList<Unit>();
     /////////
     /////////
     //for rendering
     private static boolean drawingGrid = true;
-    private static HashMap<String, SpriteSheet> terrainSpriteSheets;
+    private static HashMap<String, SpriteSheet> terrainSpriteSheets;      //TODO: make this as final!
     private static HashMap<String, Image[]> terrainSpriteTiles;
     private static HashMap<String, SpriteSheet> unitSpriteSheets;
     private static HashMap<String, HashMap<String,Image>> unitSpriteTiles;
@@ -61,22 +63,17 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         parseInput = new ParseInput();
         Unit.addEventListener(this);
 
-        gameContainer.setMinimumLogicUpdateInterval(17);
-        gameContainer.setMaximumLogicUpdateInterval(18);
         screenRes = new Vector2(gameContainer.getScreenWidth(),gameContainer.getScreenHeight());
-        terrain = new Terrain(InitializeState.getMapTiles());
-        pathFinder = new AStarPathFinder(terrain,99999,false);
         ArrayList<Tile>[][] unitTiles = InitializeState.getUnitTiles();
         terrainSpriteSheets = InitializeState.getTerrainSpriteSheets();
         terrainSpriteTiles =InitializeState.getTerrainSpriteTiles();
         unitSpriteSheets = InitializeState.getUnitSpriteSheets();
         unitSpriteTiles = InitializeState.getUnitSpriteTiles();
-
+        gameContainer.setMinimumLogicUpdateInterval(17);
+        gameContainer.setMaximumLogicUpdateInterval(18);
         //making starting lists of units
-        allunitsList = new ArrayList<Unit>();
         allUnitsByCoord = new ArrayList[unitTiles.length][unitTiles[0].length];
-        selectedUnits = new ArrayList<Unit>();
-        unitsNeededToBeUpdated = new ArrayList<Unit>();
+
         Unit unit;
         for (int x=0; x<unitTiles.length;x++)
             for (int y=0; y<unitTiles[0].length;y++)
@@ -98,7 +95,10 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
                     }
                 }
             }
+        terrain = new Terrain(InitializeState.getMapTiles(),allUnitsByCoord);
+        pathFinder = new AStarPathFinder(terrain,99999,false);
     }
+
     /////////////////
     //for rendering terrain, tiles are order by mapTiles id
     //for rendering units, there is needed to get current unit, by name (by first key in hashmap), then get current tile by unittile id
@@ -148,10 +148,26 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     public void update(GameContainer gameContainer, StateBasedGame stateBasedGame, int i) throws SlickException {
 
         ParseInput.InputUpdate(gameContainer.getInput(), i);
-        for (Unit unit: unitsNeededToBeUpdated)
-            unit.Update(i);
-    }
 
+        for (Unit unit: unitsNeededToBeUpdated)
+            if(!unit.Update(i)) //if there is no need in updateing unit (return false) remove it from updatelist
+                unitsToRemoveFromUpdateList.add(unit);
+        unitsNeededToBeUpdated.removeAll(unitsToRemoveFromUpdateList);
+        unitsToRemoveFromUpdateList.clear();
+        pause_resumeGameIfFocusChanged(gameContainer);
+
+    }
+    public void pause_resumeGameIfFocusChanged(GameContainer gameContainer)//when player alt tab or smthing similar game pauses, if get back to game, game will run again
+    {
+         if(!gameContainer.hasFocus())
+            gameContainer.pause();
+         else if(gameContainer.isPaused())
+         {
+             gameContainer.resume();
+             gameContainer.setMinimumLogicUpdateInterval(17); //it`s needed to set it again
+             gameContainer.setMaximumLogicUpdateInterval(18);
+         }
+    }
     //////////////////
     //Events
     //////////////////
@@ -180,7 +196,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     @Override
     public void SelectUnitEvent(WorldEvent e) {
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Selecting unit(s)");
-        selectedUnits = new ArrayList<Unit>();
+        selectedUnits.clear();
         if(e.selectRect.length==2) //selecting only one unit, by mouse click
             for (Unit unit : allUnitsByCoord[e.selectRect[0]/32][e.selectRect[1]/32])
                 selectedUnits.add(unit);
@@ -193,8 +209,11 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         DebugView.writeDebug(DebugView.DEBUGLVL_MOREINFO,"GameState","Selecting units.");
         for (Unit unit : selectedUnits)
         {
-            unitsNeededToBeUpdated.add(unit);
-            unit.MoveUnitEvent(new UnitEvent(Unit.possibleActions.UNIT_MOVE.name(),0,unit,pathFinder.findPath(unit,(int)unit.getTilePosition().x,(int)unit.getTilePosition().y,e.selectRect[0]/32,e.selectRect[1]/32)));
+            if(!unitsNeededToBeUpdated.contains(unit))
+                unitsNeededToBeUpdated.add(unit);
+            Path path = pathFinder.findPath(unit,(int)unit.getTilePosition().x,(int)unit.getTilePosition().y,e.selectRect[0]/32,e.selectRect[1]/32);
+            if(path!=null)
+                unit.MoveUnitEvent(new UnitEvent(Unit.possibleActions.UNIT_MOVE.name(),0,unit,path));
 
         }
     }
@@ -219,10 +238,8 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     ////////////
     @Override
     public void UnitMovedEvent(UnitUpdatesEvent e) { //update postion of unit in array sorted by coordinats
-        if(e.startingVector!=null&&e.destinationVector!=null)
-        {
-            allUnitsByCoord[(int)e.startingVector.x][(int)e.startingVector.y].remove(e.sourceUnit);
-            allUnitsByCoord[(int)e.destinationVector.x][(int)e.destinationVector.y].add(e.sourceUnit);
-        }
+            allUnitsByCoord[e.sourceUnit.getLastTilePosition().x][e.sourceUnit.getLastTilePosition().y].remove(e.sourceUnit);
+            allUnitsByCoord[e.sourceUnit.getTilePosition().x][e.sourceUnit.getTilePosition().y].add(e.sourceUnit);
+
     }
 }

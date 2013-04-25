@@ -47,7 +47,7 @@ class Peon extends Unit {
         this.race = "Orc";
         this.id = id;
         this.faction = faction;
-        this.position = new Vector2(tilePosition.x*32,tilePosition.y*32);
+        setPosition(new Vector2(tilePosition.x*32,tilePosition.y*32));
 
     }
 
@@ -71,7 +71,7 @@ class Peasant extends Unit {
         this.race = "Human";
         this.id = id;
         this.faction = faction;
-        this.position = new Vector2(tilePosition.x*32,tilePosition.y*32);
+        setPosition(new Vector2(tilePosition.x*32,tilePosition.y*32));
 
     }
 

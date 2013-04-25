@@ -6,6 +6,8 @@ import smoke11.wc2skirmish.units.Unit;
 import smoke11.wc2utils.Tile;
 import smoke11.wc2utils.Vector2;
 
+import java.util.ArrayList;
+
 /**
  * Created with IntelliJ IDEA.
  * User: nao
@@ -14,17 +16,20 @@ import smoke11.wc2utils.Vector2;
  * To change this template use File | Settings | File Templates.
  */
 public class Terrain implements TileBasedMap {
-    private Tile[][] mapTiles;
+    private final Tile[][] mapTiles;
+    private ArrayList<Unit>[][] allUnitsByCoord;
     private Vector2 mapBounds = new Vector2(0,0);
     private static String[] land_blocking_Elements = new String[] { "water","forest","wall","mountains"};
     private static String[] water_blocking_Elements = new String[]{ "coast", "ground", "forest", "mountains","wall"};
 
 
-    public Terrain(Tile[][] terrainTiles)
+    public Terrain(Tile[][] terrainTiles, ArrayList<Unit>[][] allUnitsByCoord)
     {
         mapTiles=terrainTiles;
         mapBounds = new Vector2(mapTiles.length*32,mapTiles[0].length*32);
+        this.allUnitsByCoord=allUnitsByCoord;
     }
+
     public Tile[][] getMapTiles() {
         return mapTiles;
     }
@@ -52,11 +57,19 @@ public class Terrain implements TileBasedMap {
     public boolean blocked(PathFindingContext pathFindingContext, int x, int y) {
         Unit.Types moverType = ((Unit)pathFindingContext.getMover()).getType();
         if(moverType== Unit.Types.FLYING)
-            return true;
+        {
+            for(Unit unit : allUnitsByCoord[x][y])
+                if(moverType==unit.getType())     //if there is a unit on that spot with same type as moverType it`s blocked
+                    return true;
+            return false;
+        }
         if(moverType==Unit.Types.MELEE||moverType== Unit.Types.RANGED)
         {
             for (String blocking : land_blocking_Elements)
                 if(mapTiles[x][y].Name.contains(blocking))
+                    return true;
+            for(Unit unit : allUnitsByCoord[x][y])
+                if(moverType==unit.getType())     //if there is a unit on that spot with same type as moverType it`s blocked
                     return true;
             return false;
         }
@@ -64,6 +77,9 @@ public class Terrain implements TileBasedMap {
         {
             for (String blocking : water_blocking_Elements)
                 if(mapTiles[x][y].Name.contains(blocking))
+                    return true;
+            for(Unit unit : allUnitsByCoord[x][y])
+                if(moverType==unit.getType())     //if there is a unit on that spot with same type as moverType it`s blocked
                     return true;
             return false;
         }

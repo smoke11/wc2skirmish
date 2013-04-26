@@ -40,7 +40,7 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
     /////////
     //for rendering
     private static boolean drawingGrid = true;
-    private static HashMap<String, SpriteSheet> terrainSpriteSheets;      //TODO: make this as final!
+    private static HashMap<String, SpriteSheet> terrainSpriteSheets;      //no need in making it final
     private static HashMap<String, Image[]> terrainSpriteTiles;
     private static HashMap<String, SpriteSheet> unitSpriteSheets;
     private static HashMap<String, HashMap<String,Image>> unitSpriteTiles;
@@ -111,35 +111,36 @@ public class GameState extends BasicGameState implements ICameraEventsListener, 
         //render terrain  TODO: draw all the things only on screen rect
         Rectangle screenRectangleTiles = getScreenTileRect();
         String terrainname= "summertiles";
-        terrainSpriteSheets.get(terrainname).startUse();
         Tile[][] terrainTiles = terrain.getMapTiles();
-        for (int x=0; x<terrainTiles.length;x++)
-            for (int y=0; y<terrainTiles[0].length;y++)
+
+        terrainSpriteSheets.get(terrainname).startUse();   //it is in separates fors because there can be only one spritesheet in use at time
+        for (int x=(int)screenRectangleTiles.getMinX();x<(int)screenRectangleTiles.getMaxX();x++)           //getting drawing rectangle (only visible part)
+            for (int y=(int)screenRectangleTiles.getMinY();y<(int)screenRectangleTiles.getMaxY();y++)
                 terrainSpriteTiles.get(terrainname)[terrainTiles[x][y].ID].drawEmbedded(x*32-cameraOffset.x,y*32-cameraOffset.y);
         terrainSpriteSheets.get(terrainname).endUse();
-        //render grid
-        if(drawingGrid)
-        {
-            for (int x=(int)screenRectangleTiles.getMinX();x<(int)screenRectangleTiles.getMaxX();x++)
-                for (int y=(int)screenRectangleTiles.getMinY();y<(int)screenRectangleTiles.getMaxY();y++)
-                    graphics.drawRect(x*32-cameraOffset.x,y*32-cameraOffset.y,32,32);
-        }
-        //render units (buildings are units too!)
+
         String ssname;
-        for (Unit unit : allunitsList)
-        {
-            ssname=unit.getName().toLowerCase();
-            SpriteSheet ss = unitSpriteSheets.get(ssname);
-            if(ss==null)
-                continue;
-            ss.startUse();
-            Image img = unitSpriteTiles.get(ssname).get(unit.getPudID());
-            if(img!=null)
-                img.drawEmbedded(unit.getPosition().x-cameraOffset.x,unit.getPosition().y-cameraOffset.y);
-            ss.endUse();
-        }
+        for (int x=(int)screenRectangleTiles.getMinX();x<(int)screenRectangleTiles.getMaxX();x++)           //getting drawing rectangle (only visible part)
+            for (int y=(int)screenRectangleTiles.getMinY();y<(int)screenRectangleTiles.getMaxY();y++)
+            {   //render grid
+                if(drawingGrid)
+                    graphics.drawRect(x*32-cameraOffset.x,y*32-cameraOffset.y,32,32);
+                //render units (buildings are units too!)
+                for (Unit unit : allUnitsByCoord[x][y])
+                {
+                    ssname=unit.getName().toLowerCase();
+                    SpriteSheet ss = unitSpriteSheets.get(ssname);
+                    if(ss==null)
+                        continue;
+                    ss.startUse();
+                    Image img = unitSpriteTiles.get(ssname).get(unit.getPudID());
+                    if(img!=null)
+                        img.drawEmbedded(unit.getPosition().x-cameraOffset.x,unit.getPosition().y-cameraOffset.y);
+                    ss.endUse();
+                }
+            }
         //rendering tilebox for selected units
-        for (Unit unit : selectedUnits)
+        for (Unit unit : selectedUnits)   //TODO: check later if it`s needed to draw only on visible selected units
         {
             graphics.setColor(Color.white);
             graphics.draw(new Rectangle(unit.getPosition().x-cameraOffset.x,unit.getPosition().y-cameraOffset.y,32,32)); //TODO: make proper sizes for units!
